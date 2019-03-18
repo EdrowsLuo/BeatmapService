@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="Hello World!"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <View
+        android:id="@+id/view"
+        android:layout_width="wrap_content"
+        android:layout_height="16dp"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/text"
+        android:layout_margin="10dp"
+        android:background="#555555"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="330dp" />
+
+    <EditText
+        android:id="@+id/editText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/view"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="-10dp"
+        android:ems="10"
+        android:hint="图号"
+        android:inputType="textPersonName" />
+
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/editText"
+        android:layout_centerHorizontal="true"
+        android:text="下载" />
+
+    <RadioGroup
+        android:id="@+id/downloadSite"
+        android:layout_width="wrap_content"
+        android:layout_height="107dp"
+        android:layout_below="@+id/button"
+        android:layout_centerHorizontal="true">
+
+        <RadioButton
+            android:id="@+id/radioButtonSayo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:checked="true"
+            android:text="使用Sayo" />
+
+        <RadioButton
+            android:id="@+id/radioButtonBC"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="使用血猫" />
+    </RadioGroup>
+
+    <Button
+        android:id="@+id/beatmapBrowser"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/downloadSite"
+        android:layout_centerHorizontal="true"
+        android:text="铺面浏览器" />
+
+</RelativeLayout>
