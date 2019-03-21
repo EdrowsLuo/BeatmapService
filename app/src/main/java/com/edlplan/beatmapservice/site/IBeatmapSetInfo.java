@@ -12,4 +12,6 @@ public interface IBeatmapSetInfo {
 
     int getModes();
 
+    int getRankedState();
+
 }

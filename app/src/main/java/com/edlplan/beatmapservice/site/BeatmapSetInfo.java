@@ -8,6 +8,8 @@ public class BeatmapSetInfo implements IBeatmapSetInfo {
 
     private int modes = 0;
 
+    private int rankedState = 0;
+
     public void setTitle(String title) {
         this.title = title;
     }
@@ -26,6 +28,15 @@ public class BeatmapSetInfo implements IBeatmapSetInfo {
 
     public void setModes(int modes) {
         this.modes = modes;
+    }
+
+    public void setRankedState(int rankedState) {
+        this.rankedState = rankedState;
+    }
+
+    @Override
+    public int getRankedState() {
+        return rankedState;
     }
 
     @Override

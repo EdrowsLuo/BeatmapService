@@ -146,6 +146,23 @@
                 android:textSize="10sp"
                 android:textStyle="bold" />
 
+            <TextView
+                android:id="@+id/rankStateView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@id/imageView"
+                android:layout_alignParentEnd="true"
+                android:layout_marginBottom="5dp"
+                android:layout_marginRight="10dp"
+                android:background="@drawable/rounded_rect"
+                android:gravity="center"
+                android:padding="5dp"
+                android:text="RANKED"
+                android:textAlignment="center"
+                android:textColor="#DDFFFFFF"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
         </RelativeLayout>
 
     </android.support.design.card.MaterialCardView>

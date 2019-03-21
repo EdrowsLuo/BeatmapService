@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">BeatmapService</string>
+    <string name="rankedAndApproved">Ranked &amp; Approved</string>
+    <string name="PendingAndWIP">Pending &amp; WIP</string>
 </resources>

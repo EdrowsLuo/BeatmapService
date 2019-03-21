@@ -84,6 +84,9 @@ public class Downloader {
                 }
                 outputStream.write(buffer, 0, l);
             }
+            if (!targetDirectory.exists()) {
+                targetDirectory.mkdirs();
+            }
             File target = new File(targetDirectory, name);
             if (!target.exists()) {
                 target.createNewFile();
