@@ -1,8 +1,8 @@
 {
   "latest_release" : {
-    "code" : 5,
-    "name" : "0.4.1-beta",
-    "md5" : "5b1cd08917763edc7300f3d39f074b3f",
-    "suggested_url" : "http://140.143.53.233/osu/0.4.1-beta-release.apk"
+    "code" : 6,
+    "name" : "0.4.2-beta",
+    "md5" : "6d297057eb52e818f69916c62cbdcb89",
+    "suggested_url" : "http://140.143.53.233/osu/0.4.2-beta-release.apk"
   }
 }
