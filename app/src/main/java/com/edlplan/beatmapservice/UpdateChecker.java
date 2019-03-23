@@ -24,7 +24,8 @@ public class UpdateChecker {
 
     public static void startCheckUpdate(Activity activity) {
         Util.asynLoadString(
-                "https://raw.githubusercontent.com/EdrowsLuo/BeatmapService/master/release.json",
+                BuildConfig.DEBUG ? "https://raw.githubusercontent.com/EdrowsLuo/BeatmapService/master/release.json" :
+                        "https://raw.githubusercontent.com/EdrowsLuo/BeatmapService/release/release.json",
                 s -> {
                     try {
                         JSONObject obj = new JSONObject(s);
