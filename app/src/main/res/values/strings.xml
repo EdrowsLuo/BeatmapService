@@ -1,8 +1,6 @@
 <resources>
-    <string name="app_name">BeatmapService</string>
     <string name="rankedAndApproved">Ranked &amp; Approved</string>
     <string name="PendingAndWIP">Pending &amp; WIP</string>
-    <string name="title_activity_bsmain">BSMainActivity</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="nav_header_title">下图器</string>

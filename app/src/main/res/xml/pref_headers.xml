@@ -7,4 +7,9 @@
         android:icon="@drawable/download_24dp"
         android:title="下载路径设置" />
 
+    <header
+        android:fragment="com.edlplan.beatmapservice.SettingsActivity$UpdateSettingPreferenceFragment"
+        android:icon="@drawable/download_24dp"
+        android:title="更新设置" />
+
 </preference-headers>

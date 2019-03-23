@@ -12,7 +12,14 @@ android {
         vectorDrawables.useSupportLibrary = true
     }
     buildTypes {
+
+        debug {
+            resValue "string", "app_name", "BeatmapService-debug"
+            applicationIdSuffix '.debug'
+        }
+
         release {
+            resValue "string", "app_name", "BeatmapService"
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

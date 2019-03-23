@@ -131,7 +131,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
      * Make sure to deny any unknown fragments here.
      */
     protected boolean isValidFragment(String fragmentName) {
-        return PathSettingPreferenceFragment.class.getName().equals(fragmentName);
+        return PathSettingPreferenceFragment.class.getName().equals(fragmentName) ||
+                UpdateSettingPreferenceFragment.class.getName().equals(fragmentName);
     }
 
     public static class PathSettingPreferenceFragment extends PreferenceFragment {
@@ -143,6 +144,25 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
             bindPreferenceSummaryToValue(findPreference("default_download_path"));
             bindPreferenceSummaryToValue(findPreference("default_download_path_mania"));
+        }
+
+        @Override
+        public boolean onOptionsItemSelected(MenuItem item) {
+            int id = item.getItemId();
+            if (id == android.R.id.home) {
+                startActivity(new Intent(getActivity(), SettingsActivity.class));
+                return true;
+            }
+            return super.onOptionsItemSelected(item);
+        }
+    }
+
+    public static class UpdateSettingPreferenceFragment extends PreferenceFragment {
+        @Override
+        public void onCreate(@Nullable Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            addPreferencesFromResource(R.xml.pref_update);
+            setHasOptionsMenu(true);
         }
 
         @Override

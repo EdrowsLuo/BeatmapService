@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.preference.PreferenceManager;
 import android.support.v4.content.FileProvider;
 
 import org.json.JSONException;
@@ -23,6 +24,9 @@ import java.net.URL;
 public class UpdateChecker {
 
     public static void startCheckUpdate(Activity activity) {
+        if (!PreferenceManager.getDefaultSharedPreferences(activity).getBoolean("auto_update", true)) {
+            return;
+        }
         Util.asynLoadString(
                 BuildConfig.DEBUG ? "https://raw.githubusercontent.com/EdrowsLuo/BeatmapService/master/release.json" :
                         "https://raw.githubusercontent.com/EdrowsLuo/BeatmapService/release/release.json",
