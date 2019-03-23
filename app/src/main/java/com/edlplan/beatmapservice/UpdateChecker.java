@@ -30,6 +30,8 @@ public class UpdateChecker {
                         obj = obj.getJSONObject("latest_release");
                         if (obj.getInt("code") > BuildConfig.VERSION_CODE) {
                             Util.toast(activity, "发现新版本 " + obj.getString("name") + " ,尝试更新");
+                        } else {
+                            return;
                         }
 
                         File cache = new File(activity.getCacheDir(), "updates/" + obj.getString("name") + ".apk");
@@ -44,7 +46,7 @@ public class UpdateChecker {
 
                         URL url = new URL(obj.getString("suggested_url"));
                         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                        connection.setConnectTimeout(3000);
+                        connection.setConnectTimeout(10000);
                         byte[] bytes = Util.readFullByteArray(connection.getInputStream());
                         Util.checkFile(cache);
                         OutputStream outputStream = new FileOutputStream(cache);
