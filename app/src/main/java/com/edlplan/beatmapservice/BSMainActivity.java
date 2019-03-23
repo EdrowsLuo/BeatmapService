@@ -67,6 +67,9 @@ public class BSMainActivity extends AppCompatActivity
                                 Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
             }
         }
+
+        UpdateChecker.startCheckUpdate(this);
+
         setContentView(R.layout.activity_bsmain);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);

@@ -8,11 +8,16 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class Util {
 
@@ -60,6 +65,19 @@ public class Util {
         }
         if (!file.exists()) {
             file.createNewFile();
+        }
+    }
+
+    public static String md5(File file) throws IOException {
+        MessageDigest m;
+        try {
+            byte[] all = readFullByteArray(new FileInputStream(file));
+            m = MessageDigest.getInstance("MD5");
+            m.update(all, 0, all.length);
+            return new BigInteger(1, m.digest()).toString(16);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return null;
         }
     }
 
