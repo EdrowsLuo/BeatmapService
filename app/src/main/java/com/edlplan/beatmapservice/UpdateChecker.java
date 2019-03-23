@@ -93,7 +93,7 @@ public class UpdateChecker {
     }
 
     public static void install(Activity activity, File apk) {
-        install(activity, apk);
+        installApp(activity, apk);
     }
 
     private static void installApp(Context pContext, File pFile) {
@@ -106,7 +106,7 @@ public class UpdateChecker {
         Uri uri;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            uri = FileProvider.getUriForFile(pContext, pContext.getPackageName() + ".fileProvider", pFile);
+            uri = FileProvider.getUriForFile(pContext.getApplicationContext(), BuildConfig.APPLICATION_ID + ".fileProvider", pFile);
         } else {
             uri = Uri.fromFile(pFile);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
