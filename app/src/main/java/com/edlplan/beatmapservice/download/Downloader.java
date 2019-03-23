@@ -1,4 +1,4 @@
-package com.edlplan.downloader;
+package com.edlplan.beatmapservice.download;
 
 import android.webkit.URLUtil;
 

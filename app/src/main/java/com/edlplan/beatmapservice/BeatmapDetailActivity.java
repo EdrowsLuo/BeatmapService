@@ -1,6 +1,5 @@
 package com.edlplan.beatmapservice;
 
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -22,7 +21,7 @@ import com.edlplan.beatmapservice.site.BeatmapSiteManager;
 import com.edlplan.beatmapservice.site.GameModes;
 import com.edlplan.beatmapservice.site.IBeatmapSetInfo;
 import com.edlplan.beatmapservice.site.RankedState;
-import com.edlplan.downloader.Downloader;
+import com.edlplan.beatmapservice.download.Downloader;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -32,7 +31,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;

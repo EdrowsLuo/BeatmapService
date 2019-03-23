@@ -1,7 +1,5 @@
 package com.edlplan.beatmapservice.download;
 
-import com.edlplan.downloader.Downloader;
-
 import java.util.HashMap;
 
 public class DownloadHolder {

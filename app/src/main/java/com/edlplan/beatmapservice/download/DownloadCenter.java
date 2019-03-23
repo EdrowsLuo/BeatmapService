@@ -7,7 +7,6 @@ import android.support.annotation.Nullable;
 
 import com.edlplan.beatmapservice.site.GameModes;
 import com.edlplan.beatmapservice.site.IBeatmapSetInfo;
-import com.edlplan.downloader.Downloader;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
