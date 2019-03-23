@@ -1,6 +1,7 @@
 package com.edlplan.beatmapservice.site;
 
-import com.edlplan.beatmapservice.site.sayo.SayoBeatmapInfoSite;
+import com.edlplan.beatmapservice.site.sayo.SayoBeatmapDetailSite;
+import com.edlplan.beatmapservice.site.sayo.SayoBeatmapListSite;
 
 public class BeatmapSiteManager {
 
@@ -10,10 +11,15 @@ public class BeatmapSiteManager {
         return beatmapSiteManager;
     }
 
-    private IBeatmapInfoSite infoSite = new SayoBeatmapInfoSite();
+    private IBeatmapListSite infoSite = new SayoBeatmapListSite();
 
-    public IBeatmapInfoSite getInfoSite() {
+    private IBeatmapDetailSite detailSite = new SayoBeatmapDetailSite();
+
+    public IBeatmapListSite getInfoSite() {
         return infoSite;
     }
 
+    public IBeatmapDetailSite getDetailSite() {
+        return detailSite;
+    }
 }

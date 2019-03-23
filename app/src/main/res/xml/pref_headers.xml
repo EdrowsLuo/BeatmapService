@@ -1,0 +1,10 @@
+<preference-headers xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- These settings headers are only used on tablets. -->
+
+    <header
+        android:fragment="com.edlplan.beatmapservice.SettingsActivity$PathSettingPreferenceFragment"
+        android:icon="@drawable/download_24dp"
+        android:title="下载路径设置" />
+
+</preference-headers>

@@ -12,6 +12,9 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class Downloader {
 
@@ -23,7 +26,7 @@ public class Downloader {
 
     private int autoRetryCount = 0;
 
-    private int autoRetryMax = 5;
+    private int autoRetryMax = 3;
 
     public Downloader() {
 
@@ -134,7 +137,7 @@ public class Downloader {
 
     public static class CallbackContainer implements Callback {
 
-        private Callback callback;
+        private final List<Callback> callbacks = new ArrayList<>();
 
         private int downloadByte;
 
@@ -165,30 +168,54 @@ public class Downloader {
         }
 
         public void setCallback(Callback callback) {
-            this.callback = callback;
+            synchronized (callbacks) {
+                if (callback == null) {
+                    return;
+                }
+                if (!callbacks.contains(callback)) {
+                    callbacks.add(callback);
+                }
+            }
         }
 
-        public Callback getCallback() {
-            return callback;
+        public void deleteCallback(Callback callback) {
+            if (callback == null) {
+                return;
+            }
+            synchronized (callbacks) {
+                callbacks.remove(callback);
+            }
         }
 
         @Override
         public void onProgress(int down, int total) {
             downloadByte = down;
             totalByte = total;
-            if (callback!=null) callback.onProgress(down, total);
+            synchronized (callbacks) {
+                for (Callback callback : callbacks) {
+                    callback.onProgress(down, total);
+                }
+            }
         }
 
         @Override
         public void onError(Throwable e) {
             err = true;
-            if (callback!=null) callback.onError(e);
+            synchronized (callbacks) {
+                for (Callback callback : callbacks) {
+                    callback.onError(e);
+                }
+            }
         }
 
         @Override
         public void onComplete() {
             completed = true;
-            if (callback!=null) callback.onComplete();
+            synchronized (callbacks) {
+                for (Callback callback : callbacks) {
+                    callback.onComplete();
+                }
+            }
         }
     }
 

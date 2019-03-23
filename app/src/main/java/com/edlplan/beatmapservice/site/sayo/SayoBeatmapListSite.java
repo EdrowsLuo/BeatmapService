@@ -7,22 +7,19 @@ import com.edlplan.beatmapservice.Util;
 import com.edlplan.beatmapservice.site.BeatmapFilterInfo;
 import com.edlplan.beatmapservice.site.BeatmapListType;
 import com.edlplan.beatmapservice.site.BeatmapSetInfo;
-import com.edlplan.beatmapservice.site.IBeatmapInfoSite;
+import com.edlplan.beatmapservice.site.IBeatmapListSite;
 import com.edlplan.beatmapservice.site.IBeatmapSetInfo;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 
-public class SayoBeatmapInfoSite implements IBeatmapInfoSite {
+public class SayoBeatmapListSite implements IBeatmapListSite {
 
     private final Object lock = new Object();
 
@@ -90,7 +87,7 @@ public class SayoBeatmapInfoSite implements IBeatmapInfoSite {
                     return;
                 }
                 JSONObject body = new JSONObject(Util.readFullString(connection.getInputStream()));
-                Log.i("load beatmap", "body = " + body.toString(4));
+                //Log.i("load beatmap", "body = " + body.toString(4));
                 if (body.getInt("status") != 0) {
                     if (body.getInt("status") == -1) {
                         Log.w("load beatmap", "status " + body.getInt("status"));
@@ -120,6 +117,7 @@ public class SayoBeatmapInfoSite implements IBeatmapInfoSite {
                     setInfo.setBeatmapSetID(obj.getInt("sid"));
                     setInfo.setModes(obj.getInt("modes"));
                     setInfo.setRankedState(obj.getInt("approved"));
+                    setInfo.setFavCount(obj.getInt("favourite_count"));
                     loadedSets.add(setInfo);
                 }
             } catch (Exception e) {

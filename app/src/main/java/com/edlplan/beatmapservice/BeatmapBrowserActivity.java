@@ -233,6 +233,8 @@ public class BeatmapBrowserActivity extends AppCompatActivity {
 
     public class BeatmapCardViewHolder extends RecyclerView.ViewHolder {
 
+        public Downloader.Callback updateCallback;
+
         public IBeatmapSetInfo info;
 
         public ImageView imageView;
@@ -321,6 +323,7 @@ public class BeatmapBrowserActivity extends AppCompatActivity {
             if (downloadCallbacks.get(sid) != null) {
                 //正在下载
                 Downloader.CallbackContainer container = downloadCallbacks.get(sid);
+                container.deleteCallback(beatmapCardViewHolder.updateCallback);
                 beatmapCardViewHolder.downloadProgress.setVisibility(View.VISIBLE);
                 beatmapCardViewHolder.downloadProgress.setProgress(container.isCompleted() ? 1000 : (int) (1000 * container.getProgress()));
                 beatmapCardViewHolder.downloadText.setVisibility(View.VISIBLE);
@@ -336,7 +339,7 @@ public class BeatmapBrowserActivity extends AppCompatActivity {
                     });
                 } else {
                     container.setCallback(
-                            new Downloader.Callback() {
+                            beatmapCardViewHolder.updateCallback = new Downloader.Callback() {
 
                                 @Override
                                 public void onProgress(int down, int total) {
@@ -354,7 +357,7 @@ public class BeatmapBrowserActivity extends AppCompatActivity {
 
                                 @Override
                                 public void onError(Throwable e) {
-                                    context.runOnUiThread(() ->{
+                                    context.runOnUiThread(() -> {
                                         Toast.makeText(context, "err: " + e, Toast.LENGTH_LONG).show();
                                         notifyDataSetChanged();
                                     });
@@ -390,7 +393,7 @@ public class BeatmapBrowserActivity extends AppCompatActivity {
                     beatmapCardViewHolder.downloadProgress.setProgress((int) (1000 * container.getProgress()));
                     beatmapCardViewHolder.downloadText.setVisibility(View.VISIBLE);
                     beatmapCardViewHolder.downloadText.setText(String.format("%.1f%%", container.getProgress() * 100));
-                    container.setCallback(new Downloader.Callback() {
+                    container.setCallback(beatmapCardViewHolder.updateCallback = new Downloader.Callback() {
                         @Override
                         public void onProgress(int down, int total) {
                             if (beatmapCardViewHolder.info.getBeatmapSetID() != sid) {
@@ -407,7 +410,7 @@ public class BeatmapBrowserActivity extends AppCompatActivity {
 
                         @Override
                         public void onError(Throwable e) {
-                            context.runOnUiThread(() ->{
+                            context.runOnUiThread(() -> {
                                 Toast.makeText(context, "err: " + e, Toast.LENGTH_LONG).show();
                                 notifyDataSetChanged();
                             });
@@ -430,7 +433,7 @@ public class BeatmapBrowserActivity extends AppCompatActivity {
                         }
                     });
                     downloadCallbacks.put(sid, container);
-                    DownloadCenter.download(sid, container);
+                    DownloadCenter.download(BeatmapBrowserActivity.this,info, container);
                     v.setOnClickListener(null);
                 });
             }

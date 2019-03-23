@@ -9,30 +9,38 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:process="edl.bmp.main"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme"
-        android:process="edl.bmp.main">
-        <activity android:name=".MainActivity">
+        android:theme="@style/AppTheme">
+        <activity
+            android:name=".BSMainActivity"
+            android:label="@string/title_activity_bsmain"
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
+        </activity>
+        <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:scheme="edl"
-                    android:host="beatmap.dl" />
-
+                    android:host="beatmap.dl"
+                    android:scheme="edl" />
             </intent-filter>
         </activity>
         <activity android:name=".BeatmapBrowserActivity" />
-        <activity android:name=".BeatmapDetailActivity" />
+        <activity
+            android:name=".BeatmapDetailActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/title_activity_settings" />
     </application>
 
 </manifest>

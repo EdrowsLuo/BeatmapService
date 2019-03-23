@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <EditTextPreference
+        android:capitalize="words"
+        android:defaultValue="default"
+        android:inputType="textCapWords"
+        android:key="default_download_path"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="默认下载路径" />
+
+    <EditTextPreference
+        android:capitalize="words"
+        android:defaultValue="default"
+        android:inputType="textCapWords"
+        android:key="default_download_path_mania"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="Mania模式分流路径" />
+
+</PreferenceScreen>

@@ -1,6 +1,6 @@
 package com.edlplan.beatmapservice.site;
 
-public interface IBeatmapInfoSite {
+public interface IBeatmapListSite {
 
     boolean hasMoreBeatmapSet();
 

@@ -85,38 +85,38 @@
                 android:layout_alignLeft="@id/imageView"
                 android:layout_centerVertical="true"
                 android:layout_marginBottom="2dp"
-                android:layout_marginLeft="10dp"
+                android:layout_marginLeft="7dp"
                 android:gravity="left"
                 android:orientation="horizontal">
 
                 <ImageView
                     android:id="@+id/imageViewStd"
-                    android:layout_width="15dp"
-                    android:layout_height="15dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_margin="3dp"
                     android:layout_weight="1"
                     app:srcCompat="@drawable/mode_std" />
 
                 <ImageView
                     android:id="@+id/imageViewTaiko"
-                    android:layout_width="15dp"
-                    android:layout_height="15dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_margin="3dp"
                     android:layout_weight="1"
                     app:srcCompat="@drawable/mode_taiko" />
 
                 <ImageView
                     android:id="@+id/imageViewCatch"
-                    android:layout_width="15dp"
-                    android:layout_height="15dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_margin="3dp"
                     android:layout_weight="1"
                     app:srcCompat="@drawable/mode_catch" />
 
                 <ImageView
                     android:id="@+id/imageViewMania"
-                    android:layout_width="15dp"
-                    android:layout_height="15dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_margin="3dp"
                     android:layout_weight="1"
                     app:srcCompat="@drawable/mode_mania" />

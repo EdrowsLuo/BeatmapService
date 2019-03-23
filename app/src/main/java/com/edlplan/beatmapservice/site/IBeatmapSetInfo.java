@@ -1,6 +1,8 @@
 package com.edlplan.beatmapservice.site;
 
-public interface IBeatmapSetInfo {
+import java.io.Serializable;
+
+public interface IBeatmapSetInfo extends Serializable {
 
     String getTitle();
 
@@ -13,5 +15,7 @@ public interface IBeatmapSetInfo {
     int getModes();
 
     int getRankedState();
+
+    int getFavCount();
 
 }

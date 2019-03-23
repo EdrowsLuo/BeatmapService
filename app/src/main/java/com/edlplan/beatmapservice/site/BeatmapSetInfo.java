@@ -10,6 +10,8 @@ public class BeatmapSetInfo implements IBeatmapSetInfo {
 
     private int rankedState = 0;
 
+    private int favCount;
+
     public void setTitle(String title) {
         this.title = title;
     }
@@ -32,6 +34,15 @@ public class BeatmapSetInfo implements IBeatmapSetInfo {
 
     public void setRankedState(int rankedState) {
         this.rankedState = rankedState;
+    }
+
+    @Override
+    public int getFavCount() {
+        return favCount;
+    }
+
+    public void setFavCount(int favCount) {
+        this.favCount = favCount;
     }
 
     @Override
