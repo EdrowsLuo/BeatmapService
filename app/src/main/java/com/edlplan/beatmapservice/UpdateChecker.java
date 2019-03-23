@@ -10,9 +10,11 @@ import android.support.v4.content.FileProvider;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -47,18 +49,33 @@ public class UpdateChecker {
                         URL url = new URL(obj.getString("suggested_url"));
                         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                         connection.setConnectTimeout(10000);
-                        byte[] bytes = Util.readFullByteArray(connection.getInputStream());
+                        byte[] buf = new byte[1024 * 10];
+                        int l = 0;
+                        int total = 0;
+                        InputStream in = connection.getInputStream();
+                        ByteArrayOutputStream out = new ByteArrayOutputStream();
+                        while ((l = in.read(buf)) != -1) {
+                            out.write(buf, 0, l);
+                            total += l;
+                            System.out.println(total);
+                        }
+                        System.out.println("update done");
+                        byte[] bytes = out.toByteArray();
                         Util.checkFile(cache);
+
                         OutputStream outputStream = new FileOutputStream(cache);
                         outputStream.write(bytes);
                         outputStream.close();
+                        System.out.println("write file done");
 
                         if (Util.md5(cache).equals(obj.getString("md5"))) {
                             //比对成功，安装
+                            System.out.println("md5 check done");
                             install(activity, cache);
                             return;
                         } else {
                             Util.toast(activity, "更新apk包MD5校验失败!");
+                            System.out.println("md5 check failed " + Util.md5(cache));
                             cache.delete();
                         }
 

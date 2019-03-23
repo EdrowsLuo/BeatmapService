@@ -74,7 +74,9 @@ public class Util {
             byte[] all = readFullByteArray(new FileInputStream(file));
             m = MessageDigest.getInstance("MD5");
             m.update(all, 0, all.length);
-            return new BigInteger(1, m.digest()).toString(16);
+            String md5 = new BigInteger(1, m.digest()).toString(16);
+            m.reset();
+            return md5;
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
             return null;
