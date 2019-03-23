@@ -4,12 +4,7 @@ import android.content.Context;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
-import android.widget.RadioGroup;
-import android.widget.Toast;
 
-import com.edlplan.beatmapservice.MainActivity;
-import com.edlplan.beatmapservice.R;
-import com.edlplan.beatmapservice.site.BeatmapSetInfo;
 import com.edlplan.beatmapservice.site.GameModes;
 import com.edlplan.beatmapservice.site.IBeatmapSetInfo;
 import com.edlplan.downloader.Downloader;
