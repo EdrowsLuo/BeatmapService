@@ -181,9 +181,8 @@ public class BeatmapDetailActivity extends AppCompatActivity {
                                 preview = AudioVCore.createAudio(Util.readFullByteArray(
                                         Util.openUrl("https://cdn1.sayobot.cn:25225/preview/" + info.getBeatmapSetID() + ".mp3")));
                                 loadingPreview = false;
-                                Util.toast(this, "预览加载完成");
-                                preview.play();
                                 v.post(() -> {
+                                    preview.play();
                                     updateMusicButton.run((ImageView) v);
                                 });
                             } catch (IOException e) {
@@ -214,6 +213,10 @@ public class BeatmapDetailActivity extends AppCompatActivity {
             if (DownloadHolder.get().getCallbackContainer(info.getBeatmapSetID()) != null) {
                 DownloadHolder.get().getCallbackContainer(info.getBeatmapSetID()).deleteCallback(updateCallback);
             }
+        }
+        if (preview != null) {
+            preview.pause();
+            preview.release();
         }
     }
 
