@@ -5,10 +5,12 @@ import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 
+import com.edlplan.beatmapservice.Zip;
 import com.edlplan.beatmapservice.site.GameModes;
 import com.edlplan.beatmapservice.site.IBeatmapSetInfo;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -16,11 +18,7 @@ import java.net.URLEncoder;
 
 public class DownloadCenter {
 
-    public static DownloadEntryInfo requestNewDownloadEntry() {
-        return new DownloadEntryInfo();
-    }
-
-    public static void download(int id, File dir, Downloader.Callback callback) {
+    public static void download(int id, File dir, Downloader.Callback callback, boolean unzip) {
         new Thread(()->{
             Downloader downloader = new Downloader();
             downloader.setTargetDirectory(dir);
@@ -29,6 +27,16 @@ public class DownloadCenter {
                 startURL = new URL("https://txy1.sayobot.cn/download/osz/" + URLEncoder.encode("" + id, "UTF-8"));
                 downloader.setUrl(startURL);
                 downloader.setCallback(callback);
+                if (unzip) {
+                    downloader.setHandleDownloadFile(file -> {
+                        try {
+                            Zip.unzip(file);
+                            file.delete();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+                }
                 downloader.start();
             } catch (MalformedURLException e) {
                 e.printStackTrace();
@@ -38,12 +46,9 @@ public class DownloadCenter {
         }).start();
     }
 
-    public static void download(Context context, int sid, Downloader.Callback callback) {
-        download(sid, directoryToFile(findDirectory(context, null)), callback);
-    }
-
     public static void download(Context context, IBeatmapSetInfo info, Downloader.Callback callback) {
-        download(info.getBeatmapSetID(), directoryToFile(findDirectory(context, info)), callback);
+        download(info.getBeatmapSetID(), directoryToFile(findDirectory(context, info)), callback,
+                PreferenceManager.getDefaultSharedPreferences(context).getBoolean("auto_unzip", false));
     }
 
     private static File directoryToFile(String d) {

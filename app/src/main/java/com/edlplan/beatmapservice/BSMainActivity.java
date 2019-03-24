@@ -500,7 +500,7 @@ public class BSMainActivity extends AppCompatActivity
                                             return;
                                         }
                                         beatmapCardViewHolder.downloadProgress.setProgress(1000);
-                                        beatmapCardViewHolder.downloadText.setText("100.0%");
+                                        beatmapCardViewHolder.downloadText.setText("完成！");
                                     });
                                 }
                             }
@@ -517,7 +517,7 @@ public class BSMainActivity extends AppCompatActivity
                     beatmapCardViewHolder.downloadProgress.setVisibility(View.VISIBLE);
                     beatmapCardViewHolder.downloadProgress.setProgress((int) (1000 * container.getProgress()));
                     beatmapCardViewHolder.downloadText.setVisibility(View.VISIBLE);
-                    beatmapCardViewHolder.downloadText.setText(String.format("%.1f%%", container.getProgress() * 100));
+                    beatmapCardViewHolder.downloadText.setText(container.isCompleted() ? "完成！" : String.format("%.1f%%", container.getProgress() * 100));
                     container.setCallback(beatmapCardViewHolder.updateCallback = new Downloader.Callback() {
                         @Override
                         public void onProgress(int down, int total) {
@@ -553,7 +553,7 @@ public class BSMainActivity extends AppCompatActivity
                                     return;
                                 }
                                 beatmapCardViewHolder.downloadProgress.setProgress(1000);
-                                beatmapCardViewHolder.downloadText.setText("100%");
+                                beatmapCardViewHolder.downloadText.setText("完成！");
                             });
                         }
                     });

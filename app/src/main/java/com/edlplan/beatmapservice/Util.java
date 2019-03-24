@@ -25,6 +25,14 @@ public class Util {
         return new URL(url).openConnection().getInputStream();
     }
 
+    public static void flow(InputStream in, OutputStream out) throws IOException {
+        byte[] buf = new byte[2048];
+        int l;
+        while ((l = in.read(buf)) != -1) {
+            out.write(buf, 0, l);
+        }
+    }
+
     public static byte[] readFullByteArray(InputStream in) throws IOException {
         ByteArrayOutputStream o = new ByteArrayOutputStream();
         byte[] buf = new byte[256];

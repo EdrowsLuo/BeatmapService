@@ -2,6 +2,8 @@ package com.edlplan.beatmapservice.download;
 
 import android.webkit.URLUtil;
 
+import com.edlplan.beatmapservice.Util;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -24,12 +26,18 @@ public class Downloader {
 
     private Callback callback;
 
+    private Util.RunnableWithParam<File> handleDownloadFile;
+
     private int autoRetryCount = 0;
 
     private int autoRetryMax = 3;
 
     public Downloader() {
 
+    }
+
+    public void setHandleDownloadFile(Util.RunnableWithParam<File> handleDownloadFile) {
+        this.handleDownloadFile = handleDownloadFile;
     }
 
     public void setTargetDirectory(File targetDirectory) {
@@ -99,6 +107,11 @@ public class Downloader {
             output.close();
             connection.disconnect();
             callback.onComplete();
+
+            if (handleDownloadFile != null) {
+                handleDownloadFile.run(target);
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
             if (autoRetryCount < autoRetryMax) {
@@ -110,6 +123,8 @@ public class Downloader {
 
         }
     }
+
+
 
     public void start() {
         (new Thread() {

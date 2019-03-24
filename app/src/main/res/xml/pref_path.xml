@@ -21,4 +21,9 @@
         android:singleLine="true"
         android:title="Mania模式分流路径" />
 
+    <SwitchPreference
+        android:defaultValue="false"
+        android:key="auto_unzip"
+        android:title="自动解压到下载目录" />
+
 </PreferenceScreen>
