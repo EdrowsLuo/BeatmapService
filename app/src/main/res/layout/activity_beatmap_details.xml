@@ -133,8 +133,7 @@
 
                 <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:visibility="gone">
+                    android:layout_height="match_parent">
 
                     <TextView
                         android:id="@+id/titleTextView"
@@ -211,7 +210,8 @@
         android:layout_height="64dp"
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="@dimen/fab_margin"
-        android:layout_toLeftOf="@id/music" />
+        android:layout_toLeftOf="@id/music"
+        android:visibility="gone" />
 
     <ProgressBar
         android:id="@+id/downloadProgress"
