@@ -2,7 +2,7 @@
   "latest_release" : {
     "code" : 7,
     "name" : "0.4.3-beta",
-    "md5" : "ecc5367569deb438fc62af45625d8c03",
-    "suggested_url" : "http://140.143.53.233/osu/0.4.3-beta-release.apk"
+    "md5" : "3b94bd220a2c0ebc03bbd6ed789be158",
+    "suggested_url" : "http://140.143.53.233/osu/0.4.3-beta-debug.apk"
   }
 }
