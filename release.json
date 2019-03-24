@@ -1,8 +1,8 @@
 {
   "latest_release" : {
-    "code" : 6,
-    "name" : "0.4.2-beta",
-    "md5" : "c80ecac64e2e83294433087b3f1fac4a",
-    "suggested_url" : "http://140.143.53.233/osu/bms-debug.apk"
+    "code" : 7,
+    "name" : "0.4.3-beta",
+    "md5" : "3b94bd220a2c0ebc03bbd6ed789be158",
+    "suggested_url" : "http://140.143.53.233/osu/0.4.3-beta-debug.apk"
   }
 }
