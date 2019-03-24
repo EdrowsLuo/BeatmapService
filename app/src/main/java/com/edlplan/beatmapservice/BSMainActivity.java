@@ -287,6 +287,7 @@ public class BSMainActivity extends AppCompatActivity
         }
 
         findViewById(R.id.beatmapFilterLayout).setVisibility(View.GONE);
+        searchView.clearFocus();
 
         hot.setChecked(false);
         latest.setChecked(false);
