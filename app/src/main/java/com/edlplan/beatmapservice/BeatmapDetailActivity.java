@@ -13,6 +13,9 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.edlplan.audiov.core.AudioVCore;
+import com.edlplan.audiov.core.audio.IAudioEntry;
+import com.edlplan.audiov.platform.android.AudioView;
 import com.edlplan.beatmapservice.download.DownloadCenter;
 import com.edlplan.beatmapservice.download.DownloadHolder;
 import com.edlplan.beatmapservice.site.BeatmapInfo;
@@ -52,6 +55,10 @@ public class BeatmapDetailActivity extends AppCompatActivity {
 
     private Downloader.Callback updateCallback;
 
+    private boolean loadingPreview = false;
+
+    private IAudioEntry preview;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,6 +75,8 @@ public class BeatmapDetailActivity extends AppCompatActivity {
         sidView = findViewById(R.id.sidTextView);
         likeCountView = findViewById(R.id.likeCount);
         bigCover = findViewById(R.id.bigCover);
+
+        System.out.println(std.getClass());
 
         progress = findViewById(R.id.downloadProgress);
 
@@ -147,6 +156,54 @@ public class BeatmapDetailActivity extends AppCompatActivity {
                 );
             }
         }
+
+        Util.RunnableWithParam<ImageView> updateMusicButton = v -> {
+            if (preview != null) {
+                v.setImageResource(preview.isPlaying() ? R.drawable.pause : R.drawable.music);
+                AudioView audioView = findViewById(R.id.visualCircle);
+                if (audioView.getAudioEntry() != preview) {
+                    audioView.setAudioEntry(preview);
+                    audioView.setVisibility(View.VISIBLE);
+                }
+            }
+        };
+
+        findViewById(R.id.music).setOnClickListener(v -> {
+            if (loaded) {
+                if (preview == null) {
+                    if (loadingPreview) {
+                        Util.toast(this, "预览加载中");
+                    } else {
+                        loadingPreview = true;
+                        Util.toast(this, "开始加载预览");
+                        Util.asynCall(() -> {
+                            try {
+                                preview = AudioVCore.createAudio(Util.readFullByteArray(
+                                        Util.openUrl("https://cdn1.sayobot.cn:25225/preview/" + info.getBeatmapSetID() + ".mp3")));
+                                loadingPreview = false;
+                                Util.toast(this, "预览加载完成");
+                                preview.play();
+                                v.post(() -> {
+                                    updateMusicButton.run((ImageView) v);
+                                });
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                Util.toast(this, "音频加载失败: " + e);
+                                loadingPreview = false;
+                            }
+                        });
+                    }
+                } else {
+                    if (preview.isPlaying()) {
+                        preview.pause();
+                    } else {
+                        preview.play();
+                    }
+                    updateMusicButton.run((ImageView) v);
+                }
+
+            }
+        });
 
     }
 

@@ -4,17 +4,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context=".BSMainActivity"
-    tools:showIn="@layout/app_bar_bsmain">
+    app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/mainRecycler"
         android:layout_width="match_parent"
-        android:layout_height="593dp"
+        android:layout_height="match_parent"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
-        android:layout_marginTop="43dp">
+        android:layout_marginTop="47dp">
 
     </android.support.v7.widget.RecyclerView>
 
