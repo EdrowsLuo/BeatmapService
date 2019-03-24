@@ -21,6 +21,10 @@ import java.security.NoSuchAlgorithmException;
 
 public class Util {
 
+    public static InputStream openUrl(String url) throws IOException {
+        return new URL(url).openConnection().getInputStream();
+    }
+
     public static byte[] readFullByteArray(InputStream in) throws IOException {
         ByteArrayOutputStream o = new ByteArrayOutputStream();
         byte[] buf = new byte[256];

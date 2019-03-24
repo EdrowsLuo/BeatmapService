@@ -133,7 +133,8 @@
 
                 <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent">
+                    android:layout_height="match_parent"
+                    android:visibility="gone">
 
                     <TextView
                         android:id="@+id/titleTextView"
@@ -193,6 +194,24 @@
         android:layout_alignParentEnd="true"
         android:layout_margin="@dimen/fab_margin"
         app:srcCompat="@drawable/download" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/music"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="@dimen/fab_margin"
+        android:layout_marginLeft="@dimen/fab_margin"
+        android:layout_toLeftOf="@id/download"
+        app:srcCompat="@drawable/music" />
+
+    <com.edlplan.audiov.platform.android.AudioView
+        android:id="@+id/visualCircle"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="@dimen/fab_margin"
+        android:layout_toLeftOf="@id/music" />
 
     <ProgressBar
         android:id="@+id/downloadProgress"

@@ -37,6 +37,9 @@ import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.edlplan.audiov.core.AudioVCore;
+import com.edlplan.audiov.platform.android.AndroidPlugin;
+import com.edlplan.audiov.platform.bass.BassPlugin;
 import com.edlplan.beatmapservice.download.DownloadCenter;
 import com.edlplan.beatmapservice.download.DownloadHolder;
 import com.edlplan.beatmapservice.site.BeatmapFilterInfo;
@@ -66,6 +69,9 @@ public class BSMainActivity extends AppCompatActivity
         }
 
         UpdateChecker.startCheckUpdate(this);
+
+        AndroidPlugin.initial(this);
+        AudioVCore.initial(AndroidPlugin.INSTANCE, BassPlugin.INSTANCE);
 
         setContentView(R.layout.activity_bsmain);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);

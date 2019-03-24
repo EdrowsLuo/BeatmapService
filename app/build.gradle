@@ -7,8 +7,8 @@ android {
         minSdkVersion 18
         targetSdkVersion 27
 
-        versionCode 6
-        versionName "0.4.2-beta"
+        versionCode 7
+        versionName "0.4.3-beta"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -36,6 +36,9 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation project(":audiov")
+    implementation project(":androidplugin")
+    implementation project(":bassplugin")
     implementation 'com.android.support:appcompat-v7:28.0.0'
     implementation 'com.android.support:design:28.0.0'
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
