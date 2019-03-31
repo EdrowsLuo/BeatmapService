@@ -6,7 +6,7 @@
         <item>Sayobot(香港)(推荐非大陆用户使用)</item>
         <item>Bloodcat(过时的)</item>
     </string-array>
-
+    <string name="storage_permission">这个应用需要存储权限！</string>
     <string name="setting">设置</string>
     <string name="help">帮助</string>
     <string name="download_setting">下载设置</string>

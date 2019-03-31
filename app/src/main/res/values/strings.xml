@@ -106,5 +106,6 @@
     <string name="check_update">Check update</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
+    <string name="storage_permission">this app need storage permission!</string>
     <string name="support_text">Support creator&amp;mirror</string>
 </resources>

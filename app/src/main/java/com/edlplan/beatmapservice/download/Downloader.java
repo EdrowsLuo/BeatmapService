@@ -114,7 +114,7 @@ public class Downloader {
 
         } catch (Exception e) {
             e.printStackTrace();
-            if (autoRetryCount < autoRetryMax) {
+            if (autoRetryCount < autoRetryMax & !e.getMessage().contains("Permission")) {
                 autoRetryCount++;
                 downloadURL(url);
             } else {
