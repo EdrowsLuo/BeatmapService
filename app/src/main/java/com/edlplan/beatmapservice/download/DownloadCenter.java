@@ -18,13 +18,20 @@ import java.net.URLEncoder;
 
 public class DownloadCenter {
 
-    public static void download(int id, File dir, Downloader.Callback callback, boolean unzip) {
-        new Thread(()->{
+    public static void download(Context context, int id, File dir, Downloader.Callback callback, boolean unzip) {
+        new Thread(() -> {
             Downloader downloader = new Downloader();
             downloader.setTargetDirectory(dir);
             try {
                 URL startURL;
-                startURL = new URL("https://txy1.sayobot.cn/download/osz/" + URLEncoder.encode("" + id, "UTF-8"));
+                int mirror = Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(context).getString("beatmap_origin", "0"));
+                if (mirror == 1000) {
+                    startURL = new URL("https://bloodcat.com/osu/_data/beatmaps/" + id + ".osz");
+                } else if (mirror == 1) {
+                    startURL = new URL("https://txy1.sayobot.cn/download/osz/" + URLEncoder.encode("" + id, "UTF-8") + "&server=hk");
+                } else {
+                    startURL = new URL("https://txy1.sayobot.cn/download/osz/" + URLEncoder.encode("" + id, "UTF-8"));
+                }
                 downloader.setUrl(startURL);
                 downloader.setCallback(callback);
                 if (unzip) {
@@ -47,7 +54,7 @@ public class DownloadCenter {
     }
 
     public static void download(Context context, IBeatmapSetInfo info, Downloader.Callback callback) {
-        download(info.getBeatmapSetID(), directoryToFile(findDirectory(context, info)), callback,
+        download(context, info.getBeatmapSetID(), directoryToFile(findDirectory(context, info)), callback,
                 PreferenceManager.getDefaultSharedPreferences(context).getBoolean("auto_unzip", false));
     }
 

@@ -3,5 +3,5 @@
     <SwitchPreference
         android:defaultValue="true"
         android:key="auto_update"
-        android:title="自动更新" />
+        android:title="@string/auto_update" />
 </PreferenceScreen>

@@ -34,6 +34,7 @@
                     android:background="@drawable/image_cover" />
 
                 <LinearLayout
+                    android:id="@+id/dif_icons"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignBottom="@id/bigCover"

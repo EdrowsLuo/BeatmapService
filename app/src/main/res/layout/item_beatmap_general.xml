@@ -64,6 +64,7 @@
                 android:layout_alignStart="@+id/title"
                 android:layout_below="@+id/title"
                 android:singleLine="false"
+                android:maxLines="2"
                 android:textColor="#888888"
                 tools:text="xxxxxxx" />
 
@@ -153,7 +154,7 @@
                 android:layout_alignBottom="@id/imageView"
                 android:layout_alignParentEnd="true"
                 android:layout_marginBottom="5dp"
-                android:layout_marginRight="10dp"
+                android:layout_marginRight="6dp"
                 android:background="@drawable/rounded_rect"
                 android:gravity="center"
                 android:padding="5dp"

@@ -21,6 +21,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+@Deprecated
 public class UpdateChecker {
 
     public static void startCheckUpdate(Activity activity) {

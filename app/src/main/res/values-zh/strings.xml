@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="download_mirror_name">
+        <item>Sayobot(江苏宿迁)(推荐)</item>
+        <item>Sayobot(香港)(推荐非大陆用户使用)</item>
+        <item>Bloodcat(过时的)</item>
+    </string-array>
+
+    <string name="setting">设置</string>
+    <string name="help">帮助</string>
+    <string name="download_setting">下载设置</string>
+    <string name="update_setting">更新设置</string>
+    <string name="default_download_path">默认下载路径</string>
+    <string name="auto_unzip">自动解压到下载目录</string>
+    <string name="auto_update">自动更新</string>
+    <string name="mania_mode_dir">非std模式图下载目录</string>
+    <string name="beatmap_mirror">铺面镜像</string>
+    <string name="check_update">检查更新</string>
+    <string name="ok">确认</string>
+    <string name="cancel">取消</string>
+    <string name="support_text">支持开发者/镜像站</string>
+</resources>

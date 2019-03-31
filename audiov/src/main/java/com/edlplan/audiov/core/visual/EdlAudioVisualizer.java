@@ -212,7 +212,7 @@ public class EdlAudioVisualizer extends BaseVisualizer {
         }
 
         nowCanvas.start();
-        nowCanvas.drawLines(mPoints, 3.2f, 0, 128f / 255, 1, (float) Math.sin(k));
+        nowCanvas.drawLines(mPoints, (float) (3.2f * (scale > 1 ? scale : Math.sqrt(scale))), 0, 128f / 255, 1, (float) Math.sin(k));
         rng *= scale;
         nowCanvas.drawTexture(
                 osu_icon_white,

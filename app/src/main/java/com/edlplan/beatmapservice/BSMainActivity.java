@@ -3,10 +3,13 @@ package com.edlplan.beatmapservice;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -17,6 +20,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -49,6 +53,10 @@ import com.edlplan.beatmapservice.site.GameModes;
 import com.edlplan.beatmapservice.site.IBeatmapSetInfo;
 import com.edlplan.beatmapservice.site.RankedState;
 import com.edlplan.beatmapservice.download.Downloader;
+import com.tencent.bugly.Bugly;
+import com.tencent.bugly.beta.Beta;
+
+import java.util.Locale;
 
 public class BSMainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -68,7 +76,10 @@ public class BSMainActivity extends AppCompatActivity
             }
         }
 
-        UpdateChecker.startCheckUpdate(this);
+        com.tencent.bugly.proguard.an.c = BuildConfig.DEBUG;
+        Beta.autoCheckUpgrade = PreferenceManager.getDefaultSharedPreferences(this).getBoolean("auto_update", true);
+        Beta.initDelay = 1000;
+        Bugly.init(getApplicationContext(), BuildConfig.DEBUG ? "8fc13af6cd" : "e6e37ac737", false);
 
         AndroidPlugin.initial(this);
         AudioVCore.initial(AndroidPlugin.INSTANCE, BassPlugin.INSTANCE);
@@ -215,6 +226,29 @@ public class BSMainActivity extends AppCompatActivity
         graveyard = findViewById(R.id.graveyard);
 
         loadMore(true);
+
+
+        System.out.println("region:" + Locale.getDefault().getCountry());
+        if (!Locale.getDefault().getCountry().equals("CN")) {
+            if (!PreferenceManager.getDefaultSharedPreferences(this).getBoolean("ignoreRecommendServerSelect", false)) {
+                MyDialog dialog = new MyDialog(this);
+                dialog.setTitle("Server");
+                dialog.setDescription("We recommend you to change to new server Saybot(HK)!");
+                dialog.setOnCancelListener(dialog1 -> {
+                    PreferenceManager.getDefaultSharedPreferences(this).edit().putBoolean("ignoreRecommendServerSelect", true).apply();
+                    dialog1.dismiss();
+                });
+                dialog.setOnSure(dialog1 -> {
+                    PreferenceManager.getDefaultSharedPreferences(this).edit()
+                            .putBoolean("ignoreRecommendServerSelect", true)
+                            .putString("beatmap_origin", "1")
+                            .apply();
+                    Util.toast(this,"Switch to Saybot(HK)");
+                    dialog1.dismiss();
+                });
+                dialog.show();
+            }
+        }
     }
 
     @Override
@@ -258,6 +292,10 @@ public class BSMainActivity extends AppCompatActivity
 
         if (id == R.id.nav_setting) {
             startActivity(new Intent(this, SettingsActivity.class));
+        } else if (id == R.id.nav_check_update) {
+            Beta.checkUpgrade(true, false);
+        } else if (id == R.id.nav_support) {
+            startActivity(new Intent(this, SupportActivity.class));
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

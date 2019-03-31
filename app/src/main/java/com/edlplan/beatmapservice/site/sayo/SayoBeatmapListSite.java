@@ -43,7 +43,7 @@ public class SayoBeatmapListSite implements IBeatmapListSite {
             } else {
                 try {
                     return String.format(
-                            "https://api.sayobot.cn/beatmaplist?0=%d&1=%d&2=%d&3=%s&4=63&5=%d&6=%d",
+                            "https://api.sayobot.cn/beatmaplist?0=%d&1=%d&2=%d&3=%s&5=%d&6=%d",
                             pageSize, page * pageSize,
                             filterInfo.getBeatmapListType(),
                             filterInfo.getKeyWords() != null ? URLEncoder.encode(filterInfo.getKeyWords(), "UTF-8").replace("+", "%20") : "",

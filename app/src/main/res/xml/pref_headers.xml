@@ -5,11 +5,11 @@
     <header
         android:fragment="com.edlplan.beatmapservice.SettingsActivity$PathSettingPreferenceFragment"
         android:icon="@drawable/download_24dp"
-        android:title="下载设置" />
+        android:title="@string/download_setting" />
 
     <header
         android:fragment="com.edlplan.beatmapservice.SettingsActivity$UpdateSettingPreferenceFragment"
         android:icon="@drawable/download_24dp"
-        android:title="更新设置" />
+        android:title="@string/update_setting" />
 
 </preference-headers>

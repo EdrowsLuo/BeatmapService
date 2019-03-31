@@ -9,7 +9,7 @@
         android:maxLines="1"
         android:selectAllOnFocus="true"
         android:singleLine="true"
-        android:title="默认下载路径" />
+        android:title="@string/default_download_path" />
 
     <EditTextPreference
         android:capitalize="words"
@@ -19,11 +19,20 @@
         android:maxLines="1"
         android:selectAllOnFocus="true"
         android:singleLine="true"
-        android:title="Mania模式分流路径" />
+        android:title="@string/mania_mode_dir" />
 
     <SwitchPreference
         android:defaultValue="false"
         android:key="auto_unzip"
-        android:title="自动解压到下载目录" />
+        android:title="@string/auto_unzip" />
+
+    <ListPreference
+        android:defaultValue="0"
+        android:entries="@array/download_mirror_name"
+        android:entryValues="@array/download_mirror_code"
+        android:key="beatmap_origin"
+        android:negativeButtonText="@null"
+        android:positiveButtonText="@null"
+        android:title="@string/beatmap_mirror" />
 
 </PreferenceScreen>
