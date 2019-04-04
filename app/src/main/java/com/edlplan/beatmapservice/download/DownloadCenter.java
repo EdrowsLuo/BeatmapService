@@ -81,4 +81,8 @@ public class DownloadCenter {
         return PreferenceManager.getDefaultSharedPreferences(context).getString("default_download_path", "default");
     }
 
+    public static File getDroidSongsDirectory(Context context) {
+        return directoryToFile(getDownloadDirectory(context));
+    }
+
 }

@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.net.ssl.SSLHandshakeException;
+
 public class Downloader {
 
     private URL url;
@@ -53,6 +55,7 @@ public class Downloader {
     }
 
     private void downloadURL(URL url) {
+        File target = null;
         try {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setInstanceFollowRedirects(false);
@@ -86,7 +89,15 @@ public class Downloader {
             int l;
             int callbackRate = 0;
             InputStream inputStream = connection.getInputStream();
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            if (!targetDirectory.exists()) {
+                targetDirectory.mkdirs();
+            }
+            target = new File(targetDirectory, name + ".tmp");
+            if (!target.exists()) {
+                target.createNewFile();
+            }
+            FileOutputStream outputStream = new FileOutputStream(target);
+
             while ((l = inputStream.read(buffer)) != -1) {
                 callbackRate++;
                 down += l;
@@ -95,29 +106,34 @@ public class Downloader {
                 }
                 outputStream.write(buffer, 0, l);
             }
-            if (!targetDirectory.exists()) {
-                targetDirectory.mkdirs();
-            }
-            File target = new File(targetDirectory, name);
-            if (!target.exists()) {
-                target.createNewFile();
-            }
-            FileOutputStream output = new FileOutputStream(target);
-            output.write(outputStream.toByteArray());
-            output.close();
+
+            outputStream.close();
             connection.disconnect();
             callback.onComplete();
+
+            File end = new File(targetDirectory, name);
+            target.renameTo(end);
+            target = end;
 
             if (handleDownloadFile != null) {
                 handleDownloadFile.run(target);
             }
 
+        } catch (SSLHandshakeException e) {
+            e.printStackTrace();
+            if (target != null) {
+                target.delete();
+            }
+            callback.onError(e);
         } catch (Exception e) {
             e.printStackTrace();
             if (autoRetryCount < autoRetryMax & !e.getMessage().contains("Permission")) {
                 autoRetryCount++;
                 downloadURL(url);
             } else {
+                if (target != null) {
+                    target.delete();
+                }
                 callback.onError(e);
             }
 

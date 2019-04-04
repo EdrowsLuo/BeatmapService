@@ -53,10 +53,14 @@ import com.edlplan.beatmapservice.site.GameModes;
 import com.edlplan.beatmapservice.site.IBeatmapSetInfo;
 import com.edlplan.beatmapservice.site.RankedState;
 import com.edlplan.beatmapservice.download.Downloader;
+import com.edlplan.osudroidshared.DroidShared;
 import com.tencent.bugly.Bugly;
 import com.tencent.bugly.beta.Beta;
 
+import java.util.List;
 import java.util.Locale;
+
+import ru.nsu.ccfit.zuev.osu.BeatmapInfo;
 
 public class BSMainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -229,7 +233,7 @@ public class BSMainActivity extends AppCompatActivity
         loadMore(true);
 
 
-        System.out.println("region:" + Locale.getDefault().getCountry());
+        //System.out.println("region:" + Locale.getDefault().getCountry());
         if (!Locale.getDefault().getCountry().equals("CN")) {
             if (!PreferenceManager.getDefaultSharedPreferences(this).getBoolean("ignoreRecommendServerSelect", false)) {
                 MyDialog dialog = new MyDialog(this);
@@ -250,6 +254,9 @@ public class BSMainActivity extends AppCompatActivity
                 dialog.show();
             }
         }
+
+        //List<BeatmapInfo> cache = DroidShared.loadDroidLibrary(DownloadCenter.getDroidSongsDirectory(this));
+        //System.out.println(cache.size());
     }
 
     @Override

@@ -25,6 +25,34 @@ public class Util {
         return new URL(url).openConnection().getInputStream();
     }
 
+    public static String timeToString(int s) {
+        return (s / 60) + ":" + s % 60;
+    }
+
+    public static int round(double d) {
+        return (int) Math.round(d);
+    }
+
+    public static double toDouble(Number number) {
+        if (number == null) {
+            return 0;
+        } else if (number instanceof Double) {
+            return (Double) number;
+        } else if (number instanceof Integer) {
+            return (Integer) number;
+        } else if (number instanceof Long) {
+            return (Long) number;
+        } else if (number instanceof Float) {
+            return (Float) number;
+        } else if (number instanceof Short) {
+            return (Short) number;
+        } else if (number instanceof Byte) {
+            return (Byte) number;
+        } else {
+            return 0;
+        }
+    }
+
     public static void flow(InputStream in, OutputStream out) throws IOException {
         byte[] buf = new byte[2048];
         int l;

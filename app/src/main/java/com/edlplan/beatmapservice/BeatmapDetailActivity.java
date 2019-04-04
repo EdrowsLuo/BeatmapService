@@ -25,6 +25,9 @@ import com.edlplan.beatmapservice.site.GameModes;
 import com.edlplan.beatmapservice.site.IBeatmapSetInfo;
 import com.edlplan.beatmapservice.site.RankedState;
 import com.edlplan.beatmapservice.download.Downloader;
+import com.edlplan.beatmapservice.util.Collector;
+import com.edlplan.beatmapservice.util.ListOp;
+import com.edlplan.beatmapservice.util.Updatable;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -45,7 +48,7 @@ public class BeatmapDetailActivity extends AppCompatActivity {
 
     public ImageView std, taiko, ctb, mania;
 
-    public TextView rankedStateView, titleView, detailView, sidView, likeCountView;
+    public TextView rankedStateView, titleView, artistView, creatorView, dataView, sidView, likeCountView;
 
     private IBeatmapSetInfo info;
 
@@ -59,6 +62,8 @@ public class BeatmapDetailActivity extends AppCompatActivity {
 
     private IAudioEntry preview;
 
+    private List<BeatmapInfo> infos;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,7 +76,9 @@ public class BeatmapDetailActivity extends AppCompatActivity {
         mania = findViewById(R.id.imageViewMania);
         rankedStateView = findViewById(R.id.rankStateView);
         titleView = findViewById(R.id.titleTextView);
-        detailView = findViewById(R.id.detailText);
+        artistView = findViewById(R.id.artistText);
+        creatorView = findViewById(R.id.creatorText);
+        dataView = findViewById(R.id.dataText);
         sidView = findViewById(R.id.sidTextView);
         likeCountView = findViewById(R.id.likeCount);
         bigCover = findViewById(R.id.bigCover);
@@ -229,9 +236,35 @@ public class BeatmapDetailActivity extends AppCompatActivity {
 
         rankedStateView.setText(RankedState.stateIntToString(info.getRankedState()));
         titleView.setText(info.getTitle());
-        detailView.setText(String.format("Artist: %s   Creator: %s", info.getArtist(), info.getCreator()));
+        artistView.setText("Artist: " + info.getArtist());
+        creatorView.setText("Creator: " + info.getCreator());
         sidView.setText(String.format(Locale.getDefault(), "sid : %d", info.getBeatmapSetID()));
         likeCountView.setText(String.valueOf(info.getFavCount()));
+
+        if (infos != null) {
+            Collector<BeatmapInfo, Double> length = Collector.avg(BeatmapInfo::getLength);
+            Collector<BeatmapInfo, Double> starMax = Collector.max(0, BeatmapInfo::getStar);
+            Collector<BeatmapInfo, Double> starMin = Collector.min(Double.MAX_VALUE, BeatmapInfo::getStar);
+            Collector<BeatmapInfo, Double> bpmMax = Collector.max(0, BeatmapInfo::getBpm);
+            Collector<BeatmapInfo, Double> bpmMin = Collector.min(Double.MAX_VALUE, BeatmapInfo::getBpm);
+            Updatable<BeatmapInfo> update = Collector.bind(length, starMax, starMin, bpmMax, bpmMin);
+            ListOp.copyOf(infos).forEach(update::update);
+            StringBuilder sb = new StringBuilder();
+            sb.append("Length: " + Util.timeToString(Util.round(length.getValue())));
+            sb.append("  Star: ");
+            if (starMax.getValue() - starMin.getValue() < 0.01) {
+                sb.append(String.format(Locale.getDefault(), "%.1f", starMax.getValue()));
+            } else {
+                sb.append(String.format(Locale.getDefault(), "%.1f~%.1f", starMin.getValue(), starMax.getValue()));
+            }
+            sb.append("  Bpm: ");
+            if (bpmMax.getValue() - bpmMin.getValue() < 0.01) {
+                sb.append(String.format(Locale.getDefault(), "%.1f", bpmMax.getValue()));
+            } else {
+                sb.append(String.format(Locale.getDefault(), "%.1f~%.1f", bpmMin.getValue(), bpmMax.getValue()));
+            }
+            dataView.setText(sb.toString());
+        }
 
         if (DownloadHolder.get().getCallbackContainer(info.getBeatmapSetID()) == null) {
             progress.setVisibility(View.GONE);
@@ -293,6 +326,7 @@ public class BeatmapDetailActivity extends AppCompatActivity {
 
     private void onLoadDetails(List<BeatmapInfo> list) {
         if (list.size() > 0) {
+            infos = list;
             String img = list.get(0).getImgMD5();
             if (!img.equals("00000000000000000000000000000000")) {
                 File cache = new File(getCacheDir(), "bigCover/" + img + ".png");

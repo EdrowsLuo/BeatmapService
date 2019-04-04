@@ -7,6 +7,8 @@ import android.os.Environment;
 import android.system.Os;
 import android.util.SparseArray;
 
+import com.edlplan.beatmapservice.util.SoftObject;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -18,18 +20,22 @@ import java.util.HashMap;
 
 public class CoverPool {
 
-    private static HashMap<Integer, Bitmap> bitmaps = new HashMap<>();
+    private static HashMap<Integer, SoftObject<Bitmap>> bitmaps = new HashMap<>();
 
     public static Bitmap getCoverBitmap(int sid) {
-        return bitmaps.get(sid);
+        if (!bitmaps.containsKey(sid)) {
+            return null;
+        }
+        return bitmaps.get(sid).get();
     }
 
     public static void loadCoverBitmap(Context context, int sid, Runnable onloadDone) {
         (new Thread(() -> {
             try {
                 File cache = new File(context.getCacheDir(), sid + "_cover.jpg");
+                String cachePath = cache.getAbsolutePath();
                 if (cache.exists()) {
-                    bitmaps.put(sid, BitmapFactory.decodeFile(cache.getAbsolutePath()));
+                    bitmaps.put(sid, SoftObject.create(() -> BitmapFactory.decodeFile(cachePath)));
                     onloadDone.run();
                     return;
                 }
@@ -42,7 +48,7 @@ public class CoverPool {
                     OutputStream outputStream = new FileOutputStream(cache);
                     outputStream.write(bytes);
                     outputStream.close();
-                    bitmaps.put(sid, BitmapFactory.decodeByteArray(bytes, 0, bytes.length));
+                    bitmaps.put(sid, SoftObject.create(() -> BitmapFactory.decodeFile(cachePath)));
                     onloadDone.run();
                 }
             } catch (MalformedURLException e) {

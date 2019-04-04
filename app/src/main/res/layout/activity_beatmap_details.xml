@@ -148,31 +148,49 @@
                         android:textStyle="bold" />
 
                     <TextView
-                        android:id="@+id/detailText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignStart="@+id/titleTextView"
-                        android:layout_below="@+id/titleTextView"
-                        android:text="Artist: xxxx  Creator: xxxx"
-                        android:textColor="#333333" />
-
-
-                    <TextView
                         android:id="@+id/sidTextView"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_alignStart="@+id/detailText"
-                        android:layout_below="@+id/detailText"
+                        android:layout_alignStart="@+id/artistText"
+                        android:layout_below="@+id/titleTextView"
                         android:layout_marginBottom="5dp"
                         android:text="sid : 22276"
                         android:textColor="#333333"
                         android:textSize="10sp" />
 
+                    <TextView
+                        android:id="@+id/artistText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignStart="@+id/titleTextView"
+                        android:layout_below="@+id/sidTextView"
+                        android:text="Artist: xxxx"
+                        android:textColor="#333333" />
+
+                    <TextView
+                        android:id="@+id/creatorText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignStart="@+id/titleTextView"
+                        android:layout_below="@+id/artistText"
+                        android:text="Creator: xxxx"
+                        android:textColor="#333333" />
+
+                    <TextView
+                        android:id="@+id/dataText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignStart="@+id/titleTextView"
+                        android:layout_below="@+id/creatorText"
+                        android:layout_marginTop="2dp"
+                        android:text="Length: --:--   Star: ---  Bpm: ---"
+                        android:textColor="#333333" />
+
                     <View
                         android:id="@+id/view6"
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:layout_below="@id/sidTextView"
+                        android:layout_below="@id/dataText"
                         android:layout_margin="1dp"
                         android:background="#55777777" />
 

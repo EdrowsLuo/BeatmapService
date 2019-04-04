@@ -29,11 +29,13 @@ public class SayoBeatmapDetailSite implements IBeatmapDetailSite {
             }
             //System.out.println(obj.toString(2));
             obj = obj.getJSONObject("data");
+            double bpm = obj.getDouble("bpm");
             JSONArray array = obj.getJSONArray("bid_data");
             List<BeatmapInfo> list = new ArrayList<>();
             for (int i = 0; i < array.length(); i++) {
                 JSONObject bd = array.getJSONObject(i);
                 BeatmapInfo info = new BeatmapInfo();
+                info.setBpm(bpm);
                 info.setBid(bd.getInt("bid"));
                 info.setMode(bd.getInt("mode"));
                 info.setVersion(bd.getString("version"));

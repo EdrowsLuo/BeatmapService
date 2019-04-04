@@ -6,45 +6,55 @@ public class BeatmapInfo implements Serializable {
 
     int bid;
 
-    int mode;
+    int mode; //1
 
-    String version;
+    String version; //1
 
-    int length;
+    int length; //1
 
-    double circleSize;
+    double bpm;
 
-    double approachRate;
+    double circleSize; //2
 
-    double overallDifficulty;
+    double approachRate; //2
 
-    double hP;
+    double overallDifficulty; //2
 
-    double star;
+    double hP; //2
 
-    double aim;
+    double star; //1
 
-    double speed;
+    double aim; //3
 
-    double pp;
+    double speed; //3
 
-    int circleCount;
+    double pp; //1
 
-    int sliderCount;
+    int circleCount; //3
 
-    int spinnerCount;
+    int sliderCount; //3
 
-    int maxCombo;
+    int spinnerCount; //3
 
-    int playcount;
+    int maxCombo; //1
 
-    int passcount;
+    int playcount; //3
+
+    int passcount; //3
 
     String imgMD5;
 
-    int[] strainAim;
+    int[] strainAim; //3
 
-    int[] strainSpeed;
+    int[] strainSpeed; //3
+
+    public void setBpm(double bpm) {
+        this.bpm = bpm;
+    }
+
+    public double getBpm() {
+        return bpm;
+    }
 
     public int[] getStrainAim() {
         return strainAim;
