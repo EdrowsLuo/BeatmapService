@@ -27,24 +27,28 @@ public class SayoBeatmapListSite implements IBeatmapListSite {
 
     private BeatmapFilterInfo filterInfo;
 
-    private int pageSize =  20;
+    private int pageSize =  100;
 
-    private int page = -1;
+    private int preIndex = 0;
 
     private boolean hasEnd = false;
+
+    private int updateDeltatime = 1000;
+
+    private long latestUpdateTime = -1;
 
     @SuppressLint("DefaultLocale")
     private String makeupLoadURL() {
         if (filterInfo == null) {
-            return String.format("https://api.sayobot.cn/beatmaplist?0=%d&1=%d&2=2", pageSize, page * pageSize);
+            return String.format("https://api.sayobot.cn/beatmaplist?0=%d&1=%d&2=2", pageSize, preIndex);
         } else {
             if (filterInfo.getBeatmapListType() != BeatmapListType.SEARCH) {
-                return String.format("https://api.sayobot.cn/beatmaplist?0=%d&1=%d&2=%d", pageSize, page * pageSize, filterInfo.getBeatmapListType());
+                return String.format("https://api.sayobot.cn/beatmaplist?0=%d&1=%d&2=%d", pageSize, preIndex, filterInfo.getBeatmapListType());
             } else {
                 try {
                     return String.format(
                             "https://api.sayobot.cn/beatmaplist?0=%d&1=%d&2=%d&3=%s&5=%d&6=%d",
-                            pageSize, page * pageSize,
+                            pageSize, preIndex,
                             filterInfo.getBeatmapListType(),
                             filterInfo.getKeyWords() != null ? URLEncoder.encode(filterInfo.getKeyWords(), "UTF-8").replace("+", "%20") : "",
                             filterInfo.getModes(),
@@ -62,7 +66,7 @@ public class SayoBeatmapListSite implements IBeatmapListSite {
         synchronized (lock) {
             loadedSets.clear();
             hasEnd = false;
-            page = -1;
+            preIndex = 0;
         }
     }
 
@@ -77,8 +81,15 @@ public class SayoBeatmapListSite implements IBeatmapListSite {
             if (!hasMoreBeatmapSet()) {
                 return;
             }
-            page++;
             try {
+                if (latestUpdateTime == -1) {
+                    latestUpdateTime = System.currentTimeMillis();
+                }
+                if (System.currentTimeMillis() - latestUpdateTime < updateDeltatime) {
+                    Thread.sleep(latestUpdateTime + updateDeltatime - System.currentTimeMillis());
+                }
+                latestUpdateTime = System.currentTimeMillis();
+                System.out.println("load page offset " + preIndex);
                 URL url = new URL(makeupLoadURL());
                 Log.i("load beatmap", "load url = " + url);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -99,13 +110,8 @@ public class SayoBeatmapListSite implements IBeatmapListSite {
                     return;
                 }
                 int endid = body.getInt("endid");
-                if (endid < pageSize * page) {
-                    //超额
-                    //hasEnd = true;
-                    return;
-                } else if (endid < (pageSize + 1) * page) {
-                    //请求的结果数不到一页，表示已经结束
-                    //hasEnd = true;
+                if (endid == 0) {
+                    hasEnd = true;
                 }
                 JSONArray data = body.getJSONArray("data");
                 for (int i = 0; i < data.length();i++) {
@@ -120,9 +126,9 @@ public class SayoBeatmapListSite implements IBeatmapListSite {
                     setInfo.setFavCount(obj.getInt("favourite_count"));
                     loadedSets.add(setInfo);
                 }
+                preIndex = endid;
             } catch (Exception e) {
                 e.printStackTrace();
-                page--;
             }
         }
 

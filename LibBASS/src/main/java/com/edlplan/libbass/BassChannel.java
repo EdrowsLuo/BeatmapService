@@ -12,7 +12,7 @@ public class BassChannel {
 
     protected BassChannel(int chaId, Type type) {
         if (chaId == 0) {
-            throw new RuntimeException("err bass: " + BASS.BASS_ErrorGetCode());
+            //throw new RuntimeException("err bass: " + BASS.BASS_ErrorGetCode());
         }
         this.chaId = chaId;
         this.type = type;
