@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
@@ -33,6 +34,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -194,7 +196,8 @@ public class BSMainActivity extends AppCompatActivity
 
         findViewById(R.id.refresh).setOnClickListener(v -> {
             if (!(std.isChecked() && taiko.isChecked() && ctb.isChecked() && mania.isChecked()
-                    && ranked.isChecked() && qualified.isChecked() && loved.isChecked() && pending.isChecked() && graveyard.isChecked())) {
+                    && ranked.isChecked() && qualified.isChecked() && loved.isChecked() && pending.isChecked()
+                    && graveyard.isChecked() && !enableValueLimit.isChecked())) {
                 search();
                 return;
             }
@@ -217,6 +220,16 @@ public class BSMainActivity extends AppCompatActivity
                 return;
             }
             search();
+        });
+
+        limitText = findViewById(R.id.valueLimitText);
+        (enableValueLimit = findViewById(R.id.enableValueLimit)).setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                limitText.setVisibility(View.VISIBLE);
+                limitText.setText(new BeatmapFilterInfo.ValueLimit().toSayoString());
+            } else {
+                limitText.setVisibility(View.GONE);
+            }
         });
 
         std = findViewById(R.id.std);
@@ -304,6 +317,8 @@ public class BSMainActivity extends AppCompatActivity
             Beta.checkUpgrade(true, false);
         } else if (id == R.id.nav_support) {
             startActivity(new Intent(this, SupportActivity.class));
+        } else if (id == R.id.nav_ops_dgsrz) {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://ops.dgsrz.com")));
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -325,12 +340,18 @@ public class BSMainActivity extends AppCompatActivity
 
     private CheckBox ranked, qualified, loved, pending, graveyard;
 
+    private CheckBox enableValueLimit;
+
+    private TextView limitText;
+
     public void search() {
         Log.i("beatmap-search", ((SearchView) findViewById(R.id.search_beatmap)).getQuery().toString());
         BeatmapFilterInfo info = createSearchFilterInfo();
         if (info == null) {
             return;
         }
+
+
 
         findViewById(R.id.beatmapFilterLayout).setVisibility(View.GONE);
         searchView.clearFocus();
@@ -368,8 +389,19 @@ public class BSMainActivity extends AppCompatActivity
             return null;
         }
 
-        System.out.println("mode : " + info.getModes());
-        System.out.println("rank : " + info.getRankedState());
+        if (enableValueLimit.isChecked()) {
+            BeatmapFilterInfo.ValueLimit limit = new BeatmapFilterInfo.ValueLimit();
+            if (BeatmapFilterInfo.ValueLimit.parseInto(limitText.getText().toString(), limit) != 0) {
+                MyDialog.showForTask(
+                        this,
+                        "错误的过滤条件",
+                        "不能随便删减，请只改变数字（而且暂时不支持小数，请使用整数）",
+                        Dialog::dismiss
+                );
+                return null;
+            }
+            info.setValueLimit(limit);
+        }
 
         return info;
     }

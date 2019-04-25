@@ -18,6 +18,10 @@
                 android:icon="@drawable/donate"
                 android:title="@string/support_text" />
             <item
+                android:id="@+id/nav_ops_dgsrz"
+                android:icon="@drawable/heart"
+                android:title="@string/osu_droid_download" />
+            <item
                 android:id="@+id/nav_help"
                 android:icon="@drawable/help"
                 android:title="@string/help" />

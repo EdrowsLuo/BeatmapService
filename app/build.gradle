@@ -7,8 +7,8 @@ android {
         minSdkVersion 18
         targetSdkVersion 27
 
-        versionCode 1002
-        versionName "0.4.6-beta"
+        versionCode 1100
+        versionName "0.5.0-release"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
         ndk {

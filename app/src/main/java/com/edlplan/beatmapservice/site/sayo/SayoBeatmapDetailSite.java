@@ -1,5 +1,6 @@
 package com.edlplan.beatmapservice.site.sayo;
 
+import com.edlplan.beatmapservice.BuildConfig;
 import com.edlplan.beatmapservice.Util;
 import com.edlplan.beatmapservice.site.BeatmapInfo;
 import com.edlplan.beatmapservice.site.IBeatmapDetailSite;
@@ -24,6 +25,9 @@ public class SayoBeatmapDetailSite implements IBeatmapDetailSite {
             URL url = new URL("https://api.sayobot.cn/v2/beatmapinfo?0=" + setInfo.getBeatmapSetID());
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             JSONObject obj = new JSONObject(Util.readFullString(connection.getInputStream()));
+            //if (BuildConfig.DEBUG) {
+            //    System.out.println(obj.toString(2));
+            //}
             if (obj.getInt("status") != 0) {
                 return null;
             }

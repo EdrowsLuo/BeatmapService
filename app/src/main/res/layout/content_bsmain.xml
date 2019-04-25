@@ -198,6 +198,7 @@
                     android:text="分类" />
 
                 <LinearLayout
+                    android:id="@+id/classTypeLayout"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignStart="@+id/modesTable"
@@ -220,6 +221,24 @@
                         android:text="最新" />
 
                 </LinearLayout>
+
+                <CheckBox
+                    android:id="@+id/enableValueLimit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/classTypeLayout"
+                    android:layout_marginLeft="-5dp"
+                    android:checked="false"
+                    android:text="启用参数过滤" />
+
+                <EditText
+                    android:id="@+id/valueLimitText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/enableValueLimit"
+                    android:text="star:2~5,AR:0~10,OD:0~10,CS:0~10,HP:0~10,length:0~9999,BPM:0~9999"
+                    android:textSize="14sp"
+                    android:visibility="gone" />
 
             </RelativeLayout>
         </RelativeLayout>

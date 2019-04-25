@@ -2,6 +2,7 @@ package com.edlplan.beatmapservice.site.sayo;
 
 import android.annotation.SuppressLint;
 import android.util.Log;
+import android.webkit.URLUtil;
 
 import com.edlplan.beatmapservice.Util;
 import com.edlplan.beatmapservice.site.BeatmapFilterInfo;
@@ -27,7 +28,7 @@ public class SayoBeatmapListSite implements IBeatmapListSite {
 
     private BeatmapFilterInfo filterInfo;
 
-    private int pageSize =  100;
+    private int pageSize =  50;
 
     private int preIndex = 0;
 
@@ -46,13 +47,17 @@ public class SayoBeatmapListSite implements IBeatmapListSite {
                 return String.format("https://api.sayobot.cn/beatmaplist?0=%d&1=%d&2=%d", pageSize, preIndex, filterInfo.getBeatmapListType());
             } else {
                 try {
-                    return String.format(
+                    String url = String.format(
                             "https://api.sayobot.cn/beatmaplist?0=%d&1=%d&2=%d&3=%s&5=%d&6=%d",
                             pageSize, preIndex,
                             filterInfo.getBeatmapListType(),
                             filterInfo.getKeyWords() != null ? URLEncoder.encode(filterInfo.getKeyWords(), "UTF-8").replace("+", "%20") : "",
                             filterInfo.getModes(),
                             filterInfo.getRankedState());
+                    if (filterInfo.getValueLimit() != null) {
+                        url = url + "&9=\"" + filterInfo.getValueLimit().toSayoString() + ",end\"";
+                    }
+                    return url;
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                     return null;
@@ -96,9 +101,15 @@ public class SayoBeatmapListSite implements IBeatmapListSite {
                 if (connection.getResponseCode() != 200) {
                     Log.w("load beatmap", "http response not 200! " + url + " [" + connection.getResponseCode() + "]");
                     return;
+                }String s;
+                if (connection.getHeaderField("Content-Type") != null
+                        && connection.getHeaderField("Content-Type").contains("charset=GB2312")) {
+                    s = Util.readFullString(connection.getInputStream(),"GB2312");
+                } else {
+                    s = Util.readFullString(connection.getInputStream());
                 }
-                JSONObject body = new JSONObject(Util.readFullString(connection.getInputStream()));
-                //Log.i("load beatmap", "body = " + body.toString(4));
+
+                JSONObject body = new JSONObject(s);
                 if (body.getInt("status") != 0) {
                     if (body.getInt("status") == -1) {
                         Log.w("load beatmap", "status " + body.getInt("status"));

@@ -29,7 +29,7 @@
                 <View
                     android:id="@+id/view4"
                     android:layout_width="match_parent"
-                    android:layout_height="80dp"
+                    android:layout_height="60dp"
                     android:layout_alignBottom="@id/bigCover"
                     android:background="@drawable/image_cover" />
 
@@ -151,7 +151,7 @@
                         android:id="@+id/sidTextView"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_alignStart="@+id/artistText"
+                        android:layout_alignStart="@+id/titleTextView"
                         android:layout_below="@+id/titleTextView"
                         android:layout_marginBottom="5dp"
                         android:text="sid : 22276"
@@ -193,6 +193,318 @@
                         android:layout_below="@id/dataText"
                         android:layout_margin="1dp"
                         android:background="#55777777" />
+
+                    <android.support.v7.widget.CardView
+                        android:id="@+id/diffCard"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/view6"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        android:layout_marginTop="5dp"
+                        app:cardCornerRadius="15dp"
+                        app:cardElevation="0dp">
+
+                        <android.support.v7.widget.RecyclerView
+                            android:id="@+id/difficultyList"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content" />
+
+                    </android.support.v7.widget.CardView>
+
+                    <LinearLayout
+                        android:id="@+id/barLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/diffCard"
+                        android:layout_margin="10dp"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="28dp"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:orientation="vertical">
+
+                            <com.edlplan.beatmapservice.ui.ValueBar
+                                android:id="@+id/csBar"
+                                android:layout_width="8dp"
+                                android:layout_height="120dp" />
+
+                            <TextView
+                                android:id="@+id/csText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="4.0"
+                                android:textColor="#000000"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="CS"
+                                android:textColor="#000000"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="28dp"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:orientation="vertical">
+
+                            <com.edlplan.beatmapservice.ui.ValueBar
+                                android:id="@+id/arBar"
+                                android:layout_width="8dp"
+                                android:layout_height="120dp" />
+
+                            <TextView
+                                android:id="@+id/arText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="9.3"
+                                android:textColor="#000000"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="AR"
+                                android:textColor="#000000"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="28dp"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:orientation="vertical">
+
+                            <com.edlplan.beatmapservice.ui.ValueBar
+                                android:id="@+id/odBar"
+                                android:layout_width="8dp"
+                                android:layout_height="120dp" />
+
+                            <TextView
+                                android:id="@+id/odText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="9.3"
+                                android:textColor="#000000"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="OD"
+                                android:textColor="#000000"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="28dp"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:orientation="vertical">
+
+                            <com.edlplan.beatmapservice.ui.ValueBar
+                                android:id="@+id/hpBar"
+                                android:layout_width="8dp"
+                                android:layout_height="120dp" />
+
+                            <TextView
+                                android:id="@+id/hpText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="9.3"
+                                android:textColor="#000000"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="HP"
+                                android:textColor="#000000"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_marginLeft="20dp"
+                            android:layout_width="37dp"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:orientation="vertical">
+
+                            <com.edlplan.beatmapservice.ui.ValueBar
+                                android:id="@+id/starRate"
+                                android:layout_width="8dp"
+                                android:layout_height="120dp" />
+
+                            <TextView
+                                android:id="@+id/starText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="6.73"
+                                android:textColor="#000000"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Star"
+                                android:textColor="#000000"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="37dp"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:orientation="vertical">
+
+                            <com.edlplan.beatmapservice.ui.ValueBar
+                                android:id="@+id/aimStarRate"
+                                android:layout_width="8dp"
+                                android:layout_height="120dp" />
+
+                            <TextView
+                                android:id="@+id/aimStarText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="6.73"
+                                android:textColor="#000000"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Aim"
+                                android:textColor="#000000"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="37dp"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:orientation="vertical">
+
+                            <com.edlplan.beatmapservice.ui.ValueBar
+                                android:id="@+id/speedStarRate"
+                                android:layout_width="8dp"
+                                android:layout_height="120dp" />
+
+                            <TextView
+                                android:id="@+id/speedStarText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="6.73"
+                                android:textColor="#000000"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Speed"
+                                android:textColor="#000000"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/detailText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/barLayout"
+                        android:layout_centerHorizontal="true"
+                        android:layout_marginBottom="5dp"
+                        android:gravity="center"
+                        android:singleLine="false"
+                        android:textAlignment="center"
+                        android:textColor="#000000"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:visibility="gone"
+                        android:id="@+id/strainLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/detailText"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <com.edlplan.beatmapservice.ui.ValueListView
+                            android:id="@+id/aimList"
+                            android:layout_width="match_parent"
+                            android:layout_height="50dp"
+                            android:layout_marginLeft="20dp"
+                            android:layout_marginRight="20dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="2dp"
+                            android:text="Aim"
+                            android:textSize="12sp" />
+
+                        <com.edlplan.beatmapservice.ui.ValueListView
+                            android:id="@+id/speedList"
+                            android:layout_width="match_parent"
+                            android:layout_height="50dp"
+                            android:layout_marginLeft="20dp"
+                            android:layout_marginRight="20dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="2dp"
+                            android:text="Speed"
+                            android:textSize="12sp" />
+
+                    </LinearLayout>
+
+                    <ImageButton
+                        android:id="@+id/shareButton"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_alignBottom="@+id/dataText"
+                        android:layout_alignEnd="@+id/barLayout"
+                        android:adjustViewBounds="false"
+                        android:backgroundTint="#FFFFFF"
+                        android:cropToPadding="false"
+                        android:scaleType="centerCrop"
+                        app:srcCompat="@drawable/share" />
+
 
                 </RelativeLayout>
 

@@ -3,9 +3,6 @@ package com.edlplan.beatmapservice;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Environment;
-import android.system.Os;
-import android.util.SparseArray;
 
 import com.edlplan.beatmapservice.util.SoftObject;
 

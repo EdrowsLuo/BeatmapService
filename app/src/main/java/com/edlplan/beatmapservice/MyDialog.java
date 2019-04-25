@@ -56,4 +56,12 @@ public class MyDialog extends Dialog {
     public void setOnCancelListener(@Nullable OnCancelListener listener) {
         onCancel = listener;
     }
+
+    public static void showForTask(Context context, String title, String description, Util.RunnableWithParam<Dialog> run) {
+        MyDialog dialog = new MyDialog(context);
+        dialog.setTitle(title);
+        dialog.setDescription(description);
+        dialog.setOnSure(run);
+        dialog.show();
+    }
 }

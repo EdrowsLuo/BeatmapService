@@ -2,12 +2,19 @@ package com.edlplan.beatmapservice;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.OrientationHelper;
+import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -25,7 +32,10 @@ import com.edlplan.beatmapservice.site.GameModes;
 import com.edlplan.beatmapservice.site.IBeatmapSetInfo;
 import com.edlplan.beatmapservice.site.RankedState;
 import com.edlplan.beatmapservice.download.Downloader;
+import com.edlplan.beatmapservice.ui.ValueBar;
+import com.edlplan.beatmapservice.ui.ValueListView;
 import com.edlplan.beatmapservice.util.Collector;
+import com.edlplan.beatmapservice.util.Function;
 import com.edlplan.beatmapservice.util.ListOp;
 import com.edlplan.beatmapservice.util.Updatable;
 
@@ -39,6 +49,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -46,9 +58,13 @@ public class BeatmapDetailActivity extends AppCompatActivity {
 
     public ImageView bigCover;
 
+    public String displayingCover;
+
     public ImageView std, taiko, ctb, mania;
 
     public TextView rankedStateView, titleView, artistView, creatorView, dataView, sidView, likeCountView;
+
+    public RecyclerView recyclerView;
 
     private IBeatmapSetInfo info;
 
@@ -63,6 +79,12 @@ public class BeatmapDetailActivity extends AppCompatActivity {
     private IAudioEntry preview;
 
     private List<BeatmapInfo> infos;
+
+    private BeatmapInfo selectedInfo;
+
+    private DifficultyListAdapter adapter;
+
+    private ValueBar starBar;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -82,8 +104,9 @@ public class BeatmapDetailActivity extends AppCompatActivity {
         sidView = findViewById(R.id.sidTextView);
         likeCountView = findViewById(R.id.likeCount);
         bigCover = findViewById(R.id.bigCover);
+        recyclerView = findViewById(R.id.difficultyList);
 
-        System.out.println(std.getClass());
+        starBar = findViewById(R.id.starRate);
 
         progress = findViewById(R.id.downloadProgress);
 
@@ -186,7 +209,7 @@ public class BeatmapDetailActivity extends AppCompatActivity {
                         Util.asynCall(() -> {
                             try {
                                 preview = AudioVCore.createAudio(Util.readFullByteArray(
-                                        Util.openUrl("https://cdn1.sayobot.cn:25225/preview/" + info.getBeatmapSetID() + ".mp3")));
+                                        Util.openUrl("https://cdnx.sayobot.cn:25225/preview/" + info.getBeatmapSetID() + ".mp3")));
                                 loadingPreview = false;
                                 v.post(() -> {
                                     preview.play();
@@ -264,6 +287,17 @@ public class BeatmapDetailActivity extends AppCompatActivity {
                 sb.append(String.format(Locale.getDefault(), "%.1f~%.1f", bpmMin.getValue(), bpmMax.getValue()));
             }
             dataView.setText(sb.toString());
+
+            if (adapter == null) {
+                LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+                recyclerView.setLayoutManager(layoutManager);
+                layoutManager.setOrientation(OrientationHelper.HORIZONTAL);
+                recyclerView.setAdapter(adapter = new DifficultyListAdapter());
+            }
+
+            findViewById(R.id.shareButton).setOnClickListener(v -> {
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://osu.ppy.sh/beatmapsets/" + info.getBeatmapSetID())));
+            });
         }
 
         if (DownloadHolder.get().getCallbackContainer(info.getBeatmapSetID()) == null) {
@@ -309,8 +343,6 @@ public class BeatmapDetailActivity extends AppCompatActivity {
             });
 
         }
-
-
     }
 
     private void loadDetails() {
@@ -324,14 +356,109 @@ public class BeatmapDetailActivity extends AppCompatActivity {
         })).start();
     }
 
+    public void changeCover(String s) {
+        if (!(s.equals("00000000000000000000000000000000") || s.equals(displayingCover))) {
+            displayingCover = s;
+            File cache = new File(getCacheDir(), "bigCover/" + s + ".png");
+            if (cache.exists()) {
+                bigCover.setImageURI(Uri.fromFile(cache));
+                bigCover.setOnLongClickListener(v -> {
+                    MyDialog.showForTask(this, "保存图片", "将保存在" + Util.getCoverOutputDir().getAbsolutePath(), dialog -> {
+                        try {
+                            if (Util.fileCopyTo(cache, Util.getCoverOutputDir())) {
+                                Util.toast(this, "图片保存成功");
+                            } else {
+                                Util.toast(this, "图片保存失败");
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            Util.toast(this, "图片保存失败:" + e);
+                        }
+                        dialog.dismiss();
+                    });
+                    return true;
+                });
+            } else {
+                //加载图片
+                String taskKey = "loadBigCover::" + s;
+                if (!Util.isTaskRunning(taskKey)) {
+                    Util.asynCall(taskKey, () -> {
+                        try {
+                            URL url = new URL("https://txy1.sayobot.cn/bg/md5/" + s);
+                            byte[] bs = Util.readFullByteArray(url.openConnection().getInputStream());
+                            Util.checkFile(cache);
+                            OutputStream o = new FileOutputStream(cache);
+                            o.write(bs);
+                            o.close();
+
+                            bigCover.post(() -> {
+                                if (!s.equals(displayingCover)) {
+                                    return;
+                                }
+                                bigCover.setImageURI(Uri.fromFile(cache));
+                                bigCover.setOnLongClickListener(v -> {
+                                    MyDialog.showForTask(this, "保存图片", "将保存在" + Util.getCoverOutputDir().getAbsolutePath(), dialog -> {
+                                        try {
+                                            if (Util.fileCopyTo(cache, Util.getCoverOutputDir())) {
+                                                Util.toast(this, "图片保存成功");
+                                            } else {
+                                                Util.toast(this, "图片保存失败");
+                                            }
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                            Util.toast(this, "图片保存失败:" + e);
+                                        }
+                                        dialog.dismiss();
+                                    });
+                                    return true;
+                                });
+                            });
+                        } catch (MalformedURLException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+                }
+
+            }
+        }
+    }
+
     private void onLoadDetails(List<BeatmapInfo> list) {
         if (list.size() > 0) {
             infos = list;
-            String img = list.get(0).getImgMD5();
-            if (!img.equals("00000000000000000000000000000000")) {
-                File cache = new File(getCacheDir(), "bigCover/" + img + ".png");
+            Collections.sort(infos, (a, b) -> -Double.compare(a.getStar(), b.getStar()));
+            String img = "00000000000000000000000000000000";
+            for (BeatmapInfo info : infos) {
+                if (!info.getImgMD5().equals("00000000000000000000000000000000")) {
+                    img = info.getImgMD5();
+                    break;
+                }
+            }
+            changeCover(img);
+
+            //String img = list.get(0).getImgMD5();
+            //if (!img.equals("00000000000000000000000000000000")) {
+                /*File cache = new File(getCacheDir(), "bigCover/" + img + ".png");
                 if (cache.exists()) {
                     bigCover.setImageURI(Uri.fromFile(cache));
+                    bigCover.setOnLongClickListener(v -> {
+                        MyDialog.showForTask(this, "保存图片", "将保存在" + Util.getCoverOutputDir().getAbsolutePath(), dialog -> {
+                            try {
+                                if (Util.fileCopyTo(cache, Util.getCoverOutputDir())) {
+                                    Util.toast(this, "图片保存成功");
+                                } else {
+                                    Util.toast(this, "图片保存失败");
+                                }
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                Util.toast(this, "图片保存失败:" + e);
+                            }
+                            dialog.dismiss();
+                        });
+                        return true;
+                    });
                 } else {
                     Util.asynCall(() -> {
                         try {
@@ -341,18 +468,39 @@ public class BeatmapDetailActivity extends AppCompatActivity {
                             OutputStream o = new FileOutputStream(cache);
                             o.write(bs);
                             o.close();
-                            runOnUiThread(() -> bigCover.setImageURI(Uri.fromFile(cache)));
+                            runOnUiThread(() -> {
+                                bigCover.setImageURI(Uri.fromFile(cache));
+                                bigCover.setOnLongClickListener(v -> {
+                                    MyDialog.showForTask(this, "保存图片", "将保存在" + Util.getCoverOutputDir().getAbsolutePath(), dialog -> {
+                                        try {
+                                            if (Util.fileCopyTo(cache, Util.getCoverOutputDir())) {
+                                                Util.toast(this, "图片保存成功");
+                                            } else {
+                                                Util.toast(this, "图片保存失败");
+                                            }
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                            Util.toast(this, "图片保存失败:" + e);
+                                        }
+                                        dialog.dismiss();
+                                    });
+                                    return true;
+                                });
+                            });
                         } catch (MalformedURLException e) {
                             e.printStackTrace();
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                     });
-                }
-            }
+                }*/
+            //}
         }
         loaded = true;
         updateInfoBind();
+        if (list.size() > 0) {
+            changeSelected(infos.get(0));
+        }
     }
 
     protected void setHalfTransparent() {
@@ -369,4 +517,133 @@ public class BeatmapDetailActivity extends AppCompatActivity {
             // getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
         }
     }
+
+    private void changeSelected(BeatmapInfo info) {
+        if (selectedInfo == info) {
+            return;
+        }
+        selectedInfo = info;
+
+        setValue(findViewById(R.id.csBar), findViewById(R.id.csText), info.getCircleSize());
+        setValue(findViewById(R.id.arBar), findViewById(R.id.arText), info.getApproachRate());
+        setValue(findViewById(R.id.odBar), findViewById(R.id.odText), info.getOverallDifficulty());
+        setValue(findViewById(R.id.hpBar), findViewById(R.id.hpText), info.getHP());
+        setValue(findViewById(R.id.starRate), findViewById(R.id.starText), info.getStar());
+        setValue(findViewById(R.id.aimStarRate), findViewById(R.id.aimStarText), info.getAim());
+        setValue(findViewById(R.id.speedStarRate), findViewById(R.id.speedStarText), info.getSpeed());
+
+        StringBuilder details = new StringBuilder();
+        if (info.getMode() == GameModes.Single.STD) {
+            details.append("MaxCombo: ").append(info.getMaxCombo()).append('\n');
+            details.append("PP: ").append(String.format(Locale.getDefault(), "%.2f", info.getPP())).append('\n');
+            details.append("BPM: ").append(String.format(Locale.getDefault(), "%.2f", info.getBpm())).append('\n');
+            details.append("Objects: ").append(info.getCircleCount()).append('/').append(info.getSliderCount()).append('/').append(info.getSpinnerCount());
+            findViewById(R.id.strainLayout).setVisibility(View.VISIBLE);
+            ((ValueListView) findViewById(R.id.aimList)).setValue(
+                    ListOp.copyOf(info.getStrainAim()).reflect(integer -> integer + 1).asIntArray());
+            ((ValueListView) findViewById(R.id.speedList)).setValue(
+                    ListOp.copyOf(info.getStrainSpeed()).reflect(integer -> integer + 1).asIntArray());
+        } else {
+            details.append("BPM: ").append(String.format(Locale.getDefault(), "%.2f", info.getBpm())).append('\n');
+            findViewById(R.id.strainLayout).setVisibility(View.INVISIBLE);
+        }
+        ((TextView) findViewById(R.id.detailText)).setText(details.toString());
+        changeCover(selectedInfo.getImgMD5());
+    }
+
+    private void setValue(ValueBar valueBar, TextView textView, double v) {
+        valueBar.setValue((int) (v * 10));
+        if (v > 10) {
+            textView.setText(">10");
+        }else{
+            textView.setText(String.format(Locale.getDefault(), "%.1f", v));
+        }
+    }
+
+    private class DifficultyViewHolder extends RecyclerView.ViewHolder {
+
+        private TextView diffName;
+        private TextView star;
+        private ImageView modeIcon;
+        private View body, mainBody;
+        private BeatmapInfo bindInfo;
+
+        public DifficultyViewHolder(@NonNull View itemView) {
+            super(itemView);
+            diffName = itemView.findViewById(R.id.difName);
+            star = itemView.findViewById(R.id.star);
+            modeIcon = itemView.findViewById(R.id.modeIcon);
+            body = itemView.findViewById(R.id.diffBody);
+            mainBody = itemView;
+        }
+
+        public void bind(BeatmapInfo info) {
+            bindInfo = info;
+            if (info == selectedInfo) {
+                body.setBackgroundResource(R.drawable.rounded_rect_dark);
+                //mainBody.setBackgroundResource(R.drawable.rounded_rect);
+            } else {
+                body.setBackgroundResource(R.drawable.rounded_rect);
+                //mainBody.setBackgroundColor(Color.argb(0, 0, 0, 0));
+            }
+            diffName.setText(info.getVersion());
+            int starCount = Math.min((int) info.getStar(), 10);
+            boolean halfStar = starCount < 10 && info.getStar() % 1 >= 0.5;
+            StringBuilder stringBuilder = new StringBuilder();
+            for (int i = 0; i < starCount; i++) {
+                stringBuilder.append("★");
+            }
+            if (halfStar) {
+                stringBuilder.append("☆");
+            }
+            star.setText(String.format(Locale.getDefault(), "%s %.2f", stringBuilder.toString(), info.getStar()));
+
+            int icon;
+            switch (info.getMode()) {
+                case GameModes.Single.STD:
+                    icon = R.drawable.mode_std;
+                    break;
+                case GameModes.Single.TAIKO:
+                    icon = R.drawable.mode_taiko;
+                    break;
+                case GameModes.Single.CTB:
+                    icon = R.drawable.mode_catch;
+                    break;
+                case GameModes.Single.MANIA:
+                    icon = R.drawable.mode_mania;
+                    break;
+                default:
+                    icon = R.drawable.mode_std;
+                    break;
+            }
+
+            modeIcon.setImageResource(icon);
+
+            body.setOnClickListener(v -> {
+                if (bindInfo != null && bindInfo != selectedInfo) {
+                    changeSelected(bindInfo);
+                    adapter.notifyDataSetChanged();
+                }
+            });
+        }
+    }
+
+    private class DifficultyListAdapter extends RecyclerView.Adapter<DifficultyViewHolder> {
+        @NonNull
+        @Override
+        public DifficultyViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
+            return new DifficultyViewHolder(LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.item_diffculty, viewGroup, false));
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull DifficultyViewHolder difficultyViewHolder, int i) {
+            difficultyViewHolder.bind(infos.get(i));
+        }
+
+        @Override
+        public int getItemCount() {
+            return infos.size();
+        }
+    }
+
 }
