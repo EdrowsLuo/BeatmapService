@@ -4,7 +4,7 @@ public class RankedState {
 
     public static final class BinaryCode {
 
-        public static final int PENDING = 1, RANKED = 2, QUALIFIED = 4, LOVED = 8, GRAVEYARD = 16;
+        public static final int PENDING = 8, RANKED = 1, QUALIFIED = 2, LOVED = 4, GRAVEYARD = 16;
 
         public static final int MASK = PENDING | RANKED | QUALIFIED | LOVED | GRAVEYARD;
 
