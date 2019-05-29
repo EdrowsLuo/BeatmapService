@@ -2,7 +2,6 @@ package com.edlplan.beatmapservice;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -35,7 +34,6 @@ import com.edlplan.beatmapservice.download.Downloader;
 import com.edlplan.beatmapservice.ui.ValueBar;
 import com.edlplan.beatmapservice.ui.ValueListView;
 import com.edlplan.beatmapservice.util.Collector;
-import com.edlplan.beatmapservice.util.Function;
 import com.edlplan.beatmapservice.util.ListOp;
 import com.edlplan.beatmapservice.util.Updatable;
 
@@ -49,7 +47,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -142,7 +139,7 @@ public class BeatmapDetailActivity extends AppCompatActivity {
                 }
 
                 //加载信息
-                Util.asynLoadString(
+                Util.asyncLoadString(
                         "https://api.sayobot.cn/v2/beatmapinfo?0=" + sid,
                         s -> runOnUiThread(() -> {
                             try {
@@ -206,7 +203,7 @@ public class BeatmapDetailActivity extends AppCompatActivity {
                     } else {
                         loadingPreview = true;
                         Util.toast(this, "开始加载预览");
-                        Util.asynCall(() -> {
+                        Util.asyncCall(() -> {
                             try {
                                 preview = AudioVCore.createAudio(Util.readFullByteArray(
                                         Util.openUrl("https://cdnx.sayobot.cn:25225/preview/" + info.getBeatmapSetID() + ".mp3")));
@@ -382,7 +379,7 @@ public class BeatmapDetailActivity extends AppCompatActivity {
                 //加载图片
                 String taskKey = "loadBigCover::" + s;
                 if (!Util.isTaskRunning(taskKey)) {
-                    Util.asynCall(taskKey, () -> {
+                    Util.asyncCall(taskKey, () -> {
                         try {
                             URL url = new URL("https://txy1.sayobot.cn/bg/md5/" + s);
                             byte[] bs = Util.readFullByteArray(url.openConnection().getInputStream());
@@ -460,7 +457,7 @@ public class BeatmapDetailActivity extends AppCompatActivity {
                         return true;
                     });
                 } else {
-                    Util.asynCall(() -> {
+                    Util.asyncCall(() -> {
                         try {
                             URL url = new URL("https://txy1.sayobot.cn/bg/md5/" + img);
                             byte[] bs = Util.readFullByteArray(url.openConnection().getInputStream());
@@ -524,13 +521,22 @@ public class BeatmapDetailActivity extends AppCompatActivity {
         }
         selectedInfo = info;
 
-        setValue(findViewById(R.id.csBar), findViewById(R.id.csText), info.getCircleSize());
+
         setValue(findViewById(R.id.arBar), findViewById(R.id.arText), info.getApproachRate());
         setValue(findViewById(R.id.odBar), findViewById(R.id.odText), info.getOverallDifficulty());
         setValue(findViewById(R.id.hpBar), findViewById(R.id.hpText), info.getHP());
         setValue(findViewById(R.id.starRate), findViewById(R.id.starText), info.getStar());
         setValue(findViewById(R.id.aimStarRate), findViewById(R.id.aimStarText), info.getAim());
         setValue(findViewById(R.id.speedStarRate), findViewById(R.id.speedStarText), info.getSpeed());
+
+        TextView csLabel = findViewById(R.id.csLabel);
+        if (info.getMode() == GameModes.Single.MANIA || info.getMode() == GameModes.Single.TAIKO) {
+            csLabel.setText("KEY");
+            setIntValue(findViewById(R.id.csBar), findViewById(R.id.csText), info.getCircleSize());
+        } else {
+            csLabel.setText("CS");
+            setValue(findViewById(R.id.csBar), findViewById(R.id.csText), info.getCircleSize());
+        }
 
         StringBuilder details = new StringBuilder();
         if (info.getMode() == GameModes.Single.STD) {
@@ -547,6 +553,9 @@ public class BeatmapDetailActivity extends AppCompatActivity {
             details.append("BPM: ").append(String.format(Locale.getDefault(), "%.2f", info.getBpm())).append('\n');
             findViewById(R.id.strainLayout).setVisibility(View.INVISIBLE);
         }
+
+
+
         ((TextView) findViewById(R.id.detailText)).setText(details.toString());
         changeCover(selectedInfo.getImgMD5());
     }
@@ -557,6 +566,15 @@ public class BeatmapDetailActivity extends AppCompatActivity {
             textView.setText(">10");
         }else{
             textView.setText(String.format(Locale.getDefault(), "%.1f", v));
+        }
+    }
+
+    private void setIntValue(ValueBar valueBar, TextView textView, double v) {
+        valueBar.setValue((int) (v * 10));
+        if (v > 10) {
+            textView.setText(">10");
+        }else{
+            textView.setText(String.format(Locale.getDefault(), "%d", Math.round(v)));
         }
     }
 

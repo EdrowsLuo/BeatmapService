@@ -28,7 +28,7 @@ public class UpdateChecker {
         if (!PreferenceManager.getDefaultSharedPreferences(activity).getBoolean("auto_update", true)) {
             return;
         }
-        Util.asynLoadString(
+        Util.asyncLoadString(
                 BuildConfig.DEBUG ? "https://raw.githubusercontent.com/EdrowsLuo/BeatmapService/master/release.json" :
                         "https://raw.githubusercontent.com/EdrowsLuo/BeatmapService/release/release.json",
                 s -> {

@@ -326,6 +326,21 @@ public class BSMainActivity extends AppCompatActivity
         return true;
     }
 
+    @Override
+    protected void onPause() {
+        Util.debug("onPause");
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        Util.debug("onResume");
+        super.onResume();
+        if (adapter != null) {
+            adapter.notifyDataSetChanged();
+        }
+    }
+
     RecyclerView recyclerView;
 
     BeatmapCardAdapter adapter;

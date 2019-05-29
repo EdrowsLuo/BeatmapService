@@ -5,22 +5,17 @@ import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.widget.Toast;
 
-import org.json.JSONObject;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
 import java.util.HashSet;
 
 public class Util {
@@ -37,6 +32,12 @@ public class Util {
 
     public static String timeToString(int s) {
         return (s / 60) + ":" + ((s % 60 < 10) ? ("0" + s % 60) : (s % 60));
+    }
+
+    public static void debug(String info) {
+        if (BuildConfig.DEBUG) {
+            System.out.println("DEBUG:: " + info);
+        }
     }
 
     public static int round(double d) {
@@ -103,7 +104,7 @@ public class Util {
         activity.runOnUiThread(() -> Toast.makeText(activity, txt, Toast.LENGTH_SHORT).show());
     }
 
-    public static void asynCall(Runnable runnable) {
+    public static void asyncCall(Runnable runnable) {
         (new Thread(runnable)).start();
     }
 
@@ -113,7 +114,7 @@ public class Util {
         }
     }
 
-    public static void asynCall(String key, Runnable runnable) {
+    public static void asyncCall(String key, Runnable runnable) {
         synchronized (runningTasks) {
             if (runningTasks.contains(key)) {
                 throw new RuntimeException(key + " is already running");
@@ -133,8 +134,8 @@ public class Util {
         })).start();
     }
 
-    public static void asynLoadString(String urls, RunnableWithParam<String> onLoad, @Nullable RunnableWithParam<Throwable> onErr) {
-        asynCall(() -> {
+    public static void asyncLoadString(String urls, RunnableWithParam<String> onLoad, @Nullable RunnableWithParam<Throwable> onErr) {
+        asyncCall(() -> {
             try {
                 URL url = new URL(urls);
                 onLoad.run(readFullString(url.openConnection().getInputStream()));

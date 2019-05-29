@@ -242,6 +242,7 @@
                                 android:textStyle="bold" />
 
                             <TextView
+                                android:id="@+id/csLabel"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="CS"
@@ -272,7 +273,7 @@
                                 android:textStyle="bold" />
 
                             <TextView
-
+                                android:id="@+id/arLabel"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="AR"
