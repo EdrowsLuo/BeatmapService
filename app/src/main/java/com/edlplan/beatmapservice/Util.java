@@ -3,7 +3,10 @@ package com.edlplan.beatmapservice;
 import android.app.Activity;
 import android.os.Environment;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.widget.Toast;
+
+import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -13,6 +16,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -80,6 +85,31 @@ public class Util {
         }
         in.close();
         out.close();
+    }
+
+    public static byte[] readFullByteArrayWithRetry(String url, int maxRetryCount, int waitOnRetry) throws IOException {
+        int m = maxRetryCount;
+        while (maxRetryCount > 0) {
+            try {
+                maxRetryCount--;
+                URL u = new URL(url);
+                HttpURLConnection connection = (HttpURLConnection) u.openConnection();
+                byte[] ary = readFullByteArray(connection.getInputStream());
+                connection.disconnect();
+                return ary;
+            } catch (IOException e) {
+                if (maxRetryCount <= 0) {
+                    throw e;
+                }
+                try {
+                    Thread.sleep(waitOnRetry);
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                }
+                Log.w("Requests", String.format("%s %d %s", url, maxRetryCount, e.getMessage()));
+            }
+        }
+        throw new IOException(String.format("%s %d", url, m));
     }
 
     public static byte[] readFullByteArray(InputStream in) throws IOException {
@@ -159,10 +189,38 @@ public class Util {
         }
     }
 
+    public static String httpGet(String url) throws IOException {
+        try {
+            URL u = new URL(url);
+            HttpURLConnection connection = (HttpURLConnection) u.openConnection();
+            String r = readFullString(connection.getInputStream());
+            connection.disconnect();
+            return r;
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+    }
+
     public static String md5(File file) throws IOException {
         MessageDigest m;
         try {
             byte[] all = readFullByteArray(new FileInputStream(file));
+            m = MessageDigest.getInstance("MD5");
+            m.update(all, 0, all.length);
+            String md5 = new BigInteger(1, m.digest()).toString(16);
+            m.reset();
+            return md5;
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static String md5(String s) {
+        MessageDigest m;
+        try {
+            byte[] all = s.getBytes();
             m = MessageDigest.getInstance("MD5");
             m.update(all, 0, all.length);
             String md5 = new BigInteger(1, m.digest()).toString(16);

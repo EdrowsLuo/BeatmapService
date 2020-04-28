@@ -11,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -140,7 +141,7 @@ public class BeatmapDetailActivity extends AppCompatActivity {
 
                 //加载信息
                 Util.asyncLoadString(
-                        "https://api.sayobot.cn/v2/beatmapinfo?0=" + sid,
+                        "https://api.sayobot.cn/v2/beatmapinfo?K=" + sid,
                         s -> runOnUiThread(() -> {
                             try {
                                 JSONObject obj = new JSONObject(s);
@@ -227,22 +228,31 @@ public class BeatmapDetailActivity extends AppCompatActivity {
                     }
                     updateMusicButton.run((ImageView) v);
                 }
-
             }
         });
 
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        if (preview != null) {
+            preview.pause();
+        }
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (BuildConfig.DEBUG) {
+            Log.i("LifeCycle", "onDestroy");
+        }
         if (info != null) {
             if (DownloadHolder.get().getCallbackContainer(info.getBeatmapSetID()) != null) {
                 DownloadHolder.get().getCallbackContainer(info.getBeatmapSetID()).deleteCallback(updateCallback);
             }
         }
         if (preview != null) {
-            preview.pause();
             preview.release();
         }
     }
@@ -353,10 +363,21 @@ public class BeatmapDetailActivity extends AppCompatActivity {
         })).start();
     }
 
-    public void changeCover(String s) {
-        if (!(s.equals("00000000000000000000000000000000") || s.equals(displayingCover))) {
+    public void changeCover(BeatmapInfo info) {
+        if (info == null) {
+            return;
+        }
+        String s = info.getBackgroundUrl();
+        if (s == null) {
+            return;
+        }
+        String smd5 = Util.md5(s);
+        if (BuildConfig.DEBUG) {
+            Log.i("Load", String.format("%s %s", s, smd5));
+        }
+        if (!s.equals(displayingCover)) {
             displayingCover = s;
-            File cache = new File(getCacheDir(), "bigCover/" + s + ".png");
+            File cache = new File(getCacheDir(), "bigCover/" + smd5 + ".png");
             if (cache.exists()) {
                 bigCover.setImageURI(Uri.fromFile(cache));
                 bigCover.setOnLongClickListener(v -> {
@@ -381,8 +402,7 @@ public class BeatmapDetailActivity extends AppCompatActivity {
                 if (!Util.isTaskRunning(taskKey)) {
                     Util.asyncCall(taskKey, () -> {
                         try {
-                            URL url = new URL("https://txy1.sayobot.cn/bg/md5/" + s);
-                            byte[] bs = Util.readFullByteArray(url.openConnection().getInputStream());
+                            byte[] bs = Util.readFullByteArrayWithRetry(s, 5, 100);
                             Util.checkFile(cache);
                             OutputStream o = new FileOutputStream(cache);
                             o.write(bs);
@@ -426,72 +446,14 @@ public class BeatmapDetailActivity extends AppCompatActivity {
         if (list.size() > 0) {
             infos = list;
             Collections.sort(infos, (a, b) -> -Double.compare(a.getStar(), b.getStar()));
-            String img = "00000000000000000000000000000000";
+            BeatmapInfo i = null;
             for (BeatmapInfo info : infos) {
-                if (!info.getImgMD5().equals("00000000000000000000000000000000")) {
-                    img = info.getImgMD5();
+                if (info.getBackgroundUrl() != null) {
+                    i = info;
                     break;
                 }
             }
-            changeCover(img);
-
-            //String img = list.get(0).getImgMD5();
-            //if (!img.equals("00000000000000000000000000000000")) {
-                /*File cache = new File(getCacheDir(), "bigCover/" + img + ".png");
-                if (cache.exists()) {
-                    bigCover.setImageURI(Uri.fromFile(cache));
-                    bigCover.setOnLongClickListener(v -> {
-                        MyDialog.showForTask(this, "保存图片", "将保存在" + Util.getCoverOutputDir().getAbsolutePath(), dialog -> {
-                            try {
-                                if (Util.fileCopyTo(cache, Util.getCoverOutputDir())) {
-                                    Util.toast(this, "图片保存成功");
-                                } else {
-                                    Util.toast(this, "图片保存失败");
-                                }
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                                Util.toast(this, "图片保存失败:" + e);
-                            }
-                            dialog.dismiss();
-                        });
-                        return true;
-                    });
-                } else {
-                    Util.asyncCall(() -> {
-                        try {
-                            URL url = new URL("https://txy1.sayobot.cn/bg/md5/" + img);
-                            byte[] bs = Util.readFullByteArray(url.openConnection().getInputStream());
-                            Util.checkFile(cache);
-                            OutputStream o = new FileOutputStream(cache);
-                            o.write(bs);
-                            o.close();
-                            runOnUiThread(() -> {
-                                bigCover.setImageURI(Uri.fromFile(cache));
-                                bigCover.setOnLongClickListener(v -> {
-                                    MyDialog.showForTask(this, "保存图片", "将保存在" + Util.getCoverOutputDir().getAbsolutePath(), dialog -> {
-                                        try {
-                                            if (Util.fileCopyTo(cache, Util.getCoverOutputDir())) {
-                                                Util.toast(this, "图片保存成功");
-                                            } else {
-                                                Util.toast(this, "图片保存失败");
-                                            }
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
-                                            Util.toast(this, "图片保存失败:" + e);
-                                        }
-                                        dialog.dismiss();
-                                    });
-                                    return true;
-                                });
-                            });
-                        } catch (MalformedURLException e) {
-                            e.printStackTrace();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    });
-                }*/
-            //}
+            changeCover(i);
         }
         loaded = true;
         updateInfoBind();
@@ -557,7 +519,7 @@ public class BeatmapDetailActivity extends AppCompatActivity {
 
 
         ((TextView) findViewById(R.id.detailText)).setText(details.toString());
-        changeCover(selectedInfo.getImgMD5());
+        changeCover(selectedInfo);
     }
 
     private void setValue(ValueBar valueBar, TextView textView, double v) {

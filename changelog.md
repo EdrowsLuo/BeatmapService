@@ -1,3 +1,6 @@
+# v0.5.2-release
+1.修复了侧边栏里的osu!droid游戏下载无效的bug
+
 # v0.5.1-release
 1.修复了铺面状态删选对应关系错误的问题。
 3.铺面为mania模式时显示key数

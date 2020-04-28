@@ -4,7 +4,6 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -21,7 +20,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -33,18 +31,23 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.SearchView;
+import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.edlplan.audiov.core.AudioVCore;
+import com.edlplan.audiov.core.audio.IAudioEntry;
 import com.edlplan.audiov.platform.android.AndroidPlugin;
+import com.edlplan.audiov.platform.android.AudioView;
 import com.edlplan.audiov.platform.bass.BassPlugin;
 import com.edlplan.beatmapservice.download.DownloadCenter;
 import com.edlplan.beatmapservice.download.DownloadHolder;
@@ -55,14 +58,12 @@ import com.edlplan.beatmapservice.site.GameModes;
 import com.edlplan.beatmapservice.site.IBeatmapSetInfo;
 import com.edlplan.beatmapservice.site.RankedState;
 import com.edlplan.beatmapservice.download.Downloader;
-import com.edlplan.osudroidshared.DroidShared;
+import com.edlplan.beatmapservice.site.sayo.SayoServerSelector;
+import com.edlplan.framework.utils.functionality.SmartIterator;
 import com.tencent.bugly.Bugly;
 import com.tencent.bugly.beta.Beta;
 
-import java.util.List;
-import java.util.Locale;
-
-import ru.nsu.ccfit.zuev.osu.BeatmapInfo;
+import java.io.IOException;
 
 public class BSMainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -83,7 +84,7 @@ public class BSMainActivity extends AppCompatActivity
             }
         }
 
-        com.tencent.bugly.proguard.an.c = BuildConfig.DEBUG;
+        //com.tencent.bugly.proguard.an.c = BuildConfig.DEBUG;
         Beta.autoCheckUpgrade = PreferenceManager.getDefaultSharedPreferences(this).getBoolean("auto_update", true);
         Beta.initDelay = 1000;
         Bugly.init(getApplicationContext(), BuildConfig.DEBUG ? "8fc13af6cd" : "e6e37ac737", false);
@@ -243,11 +244,45 @@ public class BSMainActivity extends AppCompatActivity
         pending = findViewById(R.id.pending);
         graveyard = findViewById(R.id.graveyard);
 
+        selectedServer = findViewById(R.id.downloadServerSpinner);
+
+        SayoServerSelector.getInstance().asyncInitial(done -> {
+            runOnUiThread(() -> {
+                if (!done) {
+                    Util.toast(this, "获取服务器列表失败，使用默认路线");
+                }
+                selectedServer.setAdapter(new ArrayAdapter<>(
+                        this,
+                        android.R.layout.simple_spinner_item,
+                        SmartIterator
+                                .wrap(SayoServerSelector.getInstance()
+                                        .getServerInfoList()
+                                        .iterator())
+                                .applyFunction(info -> info.server_nameU)
+                                .collectAllAsList()
+                ));
+                selectedServer.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        SayoServerSelector.getInstance().switchInfo(position);
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+                        SayoServerSelector.getInstance().switchInfo(0);
+                        parent.setSelection(0);
+                    }
+                });
+            });
+        });
+
+
+
         loadMore(true);
 
 
-        //System.out.println("region:" + Locale.getDefault().getCountry());
-        if (!Locale.getDefault().getCountry().equals("CN")) {
+        // 现在 Sayobot cdn 直接提供国外支持了
+        /*if (!Locale.getDefault().getCountry().equals("CN")) {
             if (!PreferenceManager.getDefaultSharedPreferences(this).getBoolean("ignoreRecommendServerSelect", false)) {
                 MyDialog dialog = new MyDialog(this);
                 dialog.setTitle("Server");
@@ -266,10 +301,24 @@ public class BSMainActivity extends AppCompatActivity
                 });
                 dialog.show();
             }
-        }
+        }*/
 
         //List<BeatmapInfo> cache = DroidShared.loadDroidLibrary(DownloadCenter.getDroidSongsDirectory(this));
         //System.out.println(cache.size());
+    }
+
+
+    public void previewAudio(IAudioEntry preview) {
+        AudioView audioView = findViewById(R.id.visualCircle);
+        if (audioView.getAudioEntry() != preview) {
+            if (audioView.getAudioEntry() != null) {
+                audioView.getAudioEntry().stop();
+                audioView.getAudioEntry().release();
+            }
+            audioView.setAudioEntry(preview);
+            audioView.setVisibility(View.VISIBLE);
+            preview.play();
+        }
     }
 
     @Override
@@ -305,7 +354,6 @@ public class BSMainActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
@@ -318,7 +366,9 @@ public class BSMainActivity extends AppCompatActivity
         } else if (id == R.id.nav_support) {
             startActivity(new Intent(this, SupportActivity.class));
         } else if (id == R.id.nav_ops_dgsrz) {
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://ops.dgsrz.com")));
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://ops.dgsrz.com")));
+        } else if (id == R.id.nav_help) {
+            startActivity(new Intent(this, HelpActivity.class));
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -348,6 +398,8 @@ public class BSMainActivity extends AppCompatActivity
     boolean loading = false;
 
     private SearchView searchView;
+
+    private Spinner selectedServer;
 
     private RadioButton hot,latest;
 
@@ -457,7 +509,7 @@ public class BSMainActivity extends AppCompatActivity
 
         public ImageView std, taiko, ctb, mania;
 
-        public ImageButton downloadButton;
+        public ImageButton downloadButton, previewButton;
 
         public TextView downloadText;
 
@@ -479,6 +531,7 @@ public class BSMainActivity extends AppCompatActivity
             downloadText = itemView.findViewById(R.id.progressText);
             downloadProgress = itemView.findViewById(R.id.progressBar);
             rankedStateView = itemView.findViewById(R.id.rankStateView);
+            previewButton = itemView.findViewById(R.id.musicPreview);
         }
 
     }
@@ -538,6 +591,24 @@ public class BSMainActivity extends AppCompatActivity
                 Intent intent = new Intent(v.getContext(), BeatmapDetailActivity.class);
                 intent.putExtra("beatmapSetInfo", info);
                 v.getContext().startActivity(intent);
+            });
+
+            beatmapCardViewHolder.previewButton.setOnClickListener(v -> {
+                AudioView audioView = findViewById(R.id.visualCircle);
+                if (audioView.getAudioEntry() != null) {
+                    audioView.getAudioEntry().pause();
+                }
+                Util.asyncCall(() -> {
+                    try {
+                        IAudioEntry preview = AudioVCore.createAudio(Util.readFullByteArray(
+                                Util.openUrl("https://cdnx.sayobot.cn:25225/preview/" + info.getBeatmapSetID() + ".mp3")));
+                        runOnUiThread(() -> {
+                            previewAudio(preview);
+                        });
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
             });
 
             if (DownloadHolder.get().getCallbackContainer(sid) != null) {

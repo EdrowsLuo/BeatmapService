@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import com.edlplan.beatmapservice.Zip;
 import com.edlplan.beatmapservice.site.GameModes;
 import com.edlplan.beatmapservice.site.IBeatmapSetInfo;
+import com.edlplan.beatmapservice.site.sayo.SayoServerSelector;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,23 +16,21 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.Locale;
 
 public class DownloadCenter {
 
-    public static void download(Context context, int id, File dir, Downloader.Callback callback, boolean unzip) {
+    public static void download(Context context, int id, File dir, Downloader.Callback callback, boolean unzip, IBeatmapSetInfo info) {
         new Thread(() -> {
             Downloader downloader = new Downloader();
             downloader.setTargetDirectory(dir);
             try {
                 URL startURL;
-                int mirror = Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(context).getString("beatmap_origin", "0"));
-                if (mirror == 1000) {
-                    startURL = new URL("https://bloodcat.com/osu/_data/beatmaps/" + id + ".osz");
-                } else if (mirror == 1) {
-                    startURL = new URL("https://txy1.sayobot.cn/download/osz/" + URLEncoder.encode("" + id, "UTF-8") + "&server=hk");
-                } else {
-                    startURL = new URL("https://txy1.sayobot.cn/download/osz/" + URLEncoder.encode("" + id, "UTF-8"));
-                }
+
+                String server = SayoServerSelector.getInstance().getSelected().server;
+                startURL = new URL("https://txy1.sayobot.cn/beatmaps/download/full/" + URLEncoder.encode("" + id, "UTF-8") + "?server=" + server);
+
+                downloader.setFilenameOverride(String.format(Locale.getDefault(), "%d %s - %s.osz", id, info.getArtist(), info.getTitle()));
                 downloader.setUrl(startURL);
                 downloader.setCallback(callback);
                 if (unzip) {
@@ -55,7 +54,7 @@ public class DownloadCenter {
 
     public static void download(Context context, IBeatmapSetInfo info, Downloader.Callback callback) {
         download(context, info.getBeatmapSetID(), directoryToFile(findDirectory(context, info)), callback,
-                PreferenceManager.getDefaultSharedPreferences(context).getBoolean("auto_unzip", false));
+                PreferenceManager.getDefaultSharedPreferences(context).getBoolean("auto_unzip", false), info);
     }
 
     private static File directoryToFile(String d) {

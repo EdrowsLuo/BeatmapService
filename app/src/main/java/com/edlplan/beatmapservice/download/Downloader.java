@@ -34,8 +34,14 @@ public class Downloader {
 
     private int autoRetryMax = 3;
 
+    private String filenameOverride = null;
+
     public Downloader() {
 
+    }
+
+    public void setFilenameOverride(String filenameOverride) {
+        this.filenameOverride = filenameOverride;
     }
 
     public void setHandleDownloadFile(Util.RunnableWithParam<File> handleDownloadFile) {
@@ -70,9 +76,15 @@ public class Downloader {
             }
 
             int size = Integer.parseInt(connection.getHeaderField("Content-Length"));
-            String name = URLUtil.guessFileName(url.toString(), connection.getHeaderField("Content-Disposition"), null);
-            name = URLDecoder.decode(name, "UTF-8");
+            String name = filenameOverride == null ? URLDecoder.decode(
+                    URLUtil.guessFileName(url.toString(), connection.getHeaderField("Content-Disposition"), null),
+                    "UTF-8"
+            ) : filenameOverride;
             System.out.println("guess file name " + name);
+            if (name.contains("/")) {
+                name = name.replace('/', '&');
+                System.out.println("new file name " + name);
+            }
             /*if (connection.getHeaderField("Content-Disposition") != null) {
                 String[] spl = connection.getHeaderField("Content-Disposition").split(";");
                 name = getPair(spl[0].trim())[1];

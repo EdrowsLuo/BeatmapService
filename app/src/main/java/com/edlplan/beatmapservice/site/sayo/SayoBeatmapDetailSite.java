@@ -16,6 +16,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class SayoBeatmapDetailSite implements IBeatmapDetailSite {
 
@@ -58,7 +59,12 @@ public class SayoBeatmapDetailSite implements IBeatmapDetailSite {
                 info.setMaxCombo(bd.getInt("maxcombo"));
                 info.setPlaycount(bd.getInt("playcount"));
                 info.setPasscount(bd.getInt("passcount"));
-                info.setImgMD5(bd.getString("img"));
+                if (bd.getString("bg").trim().length() != 0) {
+                    info.setBackgroundUrl(String.format(
+                            Locale.getDefault(),
+                            "https://txy1.sayobot.cn/beatmaps/files/%d/%s",
+                            setInfo.getBeatmapSetID(), bd.getString("bg")));
+                }
                 info.setStrainAim(divideToStrain(bd.getString("strain_aim")));
                 info.setStrainSpeed(divideToStrain(bd.getString("strain_speed")));
                 list.add(info);

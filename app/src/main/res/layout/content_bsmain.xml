@@ -76,19 +76,58 @@
 
 
                 <TextView
-                    android:id="@+id/rankedStates"
+                    android:id="@+id/downloadSetting"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentStart="true"
                     android:layout_alignParentTop="true"
+                    android:text="下载设置" />
+
+                <TableLayout
+                    android:id="@+id/downloadSettingTable"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/downloadSetting"
+                    android:layout_alignStart="@+id/downloadSetting"
+                    android:layout_marginLeft="-5dp"
+                    android:layout_marginBottom="5dp"
+                    android:layout_marginTop="5dp">
+
+                    <TableRow
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+
+                        <TextView
+                            android:id="@+id/textView5"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:text="下载路线："
+                            android:textColor="#000000" />
+
+                        <Spinner
+                            android:id="@+id/downloadServerSpinner"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:spinnerMode="dropdown" />
+                    </TableRow>
+
+                </TableLayout>
+
+                <TextView
+                    android:id="@+id/rankedStates"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/downloadSettingTable"
+                    android:layout_alignStart="@id/downloadSetting"
                     android:text="状态" />
 
                 <TableLayout
                     android:id="@+id/rankedClassTable"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_alignStart="@+id/rankedStates"
                     android:layout_below="@+id/rankedStates"
+                    android:layout_alignStart="@+id/rankedStates"
                     android:layout_marginLeft="-5dp">
 
                     <TableRow
@@ -142,17 +181,17 @@
                     android:id="@+id/modeText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignStart="@id/rankedStates"
                     android:layout_below="@id/rankedClassTable"
+                    android:layout_alignStart="@id/rankedStates"
                     android:text="模式" />
 
                 <TableLayout
                     android:id="@+id/modesTable"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_below="@id/modeText"
                     android:layout_alignLeft="@id/rankedClassTable"
                     android:layout_alignParentStart="true"
-                    android:layout_below="@id/modeText"
                     android:layout_marginLeft="-5dp">
 
                     <TableRow
@@ -193,16 +232,16 @@
                     android:id="@+id/classType"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignStart="@+id/rankedStates"
                     android:layout_below="@+id/modesTable"
+                    android:layout_alignStart="@+id/rankedStates"
                     android:text="分类" />
 
                 <LinearLayout
                     android:id="@+id/classTypeLayout"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignStart="@+id/modesTable"
                     android:layout_below="@id/classType"
+                    android:layout_alignStart="@+id/modesTable"
                     android:orientation="horizontal">
 
                     <RadioButton

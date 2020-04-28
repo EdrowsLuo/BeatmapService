@@ -42,11 +42,11 @@ public class BeatmapInfo implements Serializable {
 
     int passcount; //3
 
-    String imgMD5;
-
     int[] strainAim; //3
 
     int[] strainSpeed; //3
+
+    String backgroundUrl;
 
     public void setBpm(double bpm) {
         this.bpm = bpm;
@@ -96,12 +96,12 @@ public class BeatmapInfo implements Serializable {
         this.bid = bid;
     }
 
-    public String getImgMD5() {
-        return imgMD5;
+    public String getBackgroundUrl() {
+        return backgroundUrl;
     }
 
-    public void setImgMD5(String imgMD5) {
-        this.imgMD5 = imgMD5;
+    public void setBackgroundUrl(String backgroundUrl) {
+        this.backgroundUrl = backgroundUrl;
     }
 
     public int getMode() {
