@@ -25,6 +25,7 @@ public class SayoBeatmapDetailSite implements IBeatmapDetailSite {
         try {
             URL url = new URL("https://api.sayobot.cn/v2/beatmapinfo?0=" + setInfo.getBeatmapSetID());
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            Util.modifyUserAgent(connection);
             JSONObject obj = new JSONObject(Util.readFullString(connection.getInputStream()));
             //if (BuildConfig.DEBUG) {
             //    System.out.println(obj.toString(2));

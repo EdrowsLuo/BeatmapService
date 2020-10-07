@@ -98,6 +98,7 @@ public class SayoBeatmapListSite implements IBeatmapListSite {
                 URL url = new URL(makeupLoadURL());
                 Log.i("load beatmap", "load url = " + url);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                Util.modifyUserAgent(connection);
                 if (connection.getResponseCode() != 200) {
                     Log.w("load beatmap", "http response not 200! " + url + " [" + connection.getResponseCode() + "]");
                     return;

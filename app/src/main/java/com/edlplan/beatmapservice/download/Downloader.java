@@ -2,6 +2,7 @@ package com.edlplan.beatmapservice.download;
 
 import android.webkit.URLUtil;
 
+import com.edlplan.beatmapservice.BuildConfig;
 import com.edlplan.beatmapservice.Util;
 
 import java.io.ByteArrayOutputStream;
@@ -34,6 +35,8 @@ public class Downloader {
 
     private int autoRetryMax = 3;
 
+    private int autoRetryInterval = 5000;
+
     private String filenameOverride = null;
 
     public Downloader() {
@@ -65,9 +68,13 @@ public class Downloader {
         try {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setInstanceFollowRedirects(false);
-            System.out.println(url);
-            System.out.println(connection.getResponseCode());
-            System.out.println(connection.getHeaderFields());
+            Util.modifyUserAgent(connection);
+            if (BuildConfig.DEBUG) {
+                System.out.println(url);
+                System.out.println(System.getProperty("http.agent"));
+                System.out.println(connection.getResponseCode());
+                System.out.println(connection.getHeaderFields());
+            }
 
             if (connection.getResponseCode() == 302) {
                 System.out.println("redirect to " + connection.getHeaderField("location"));
@@ -141,6 +148,11 @@ public class Downloader {
             e.printStackTrace();
             if (autoRetryCount < autoRetryMax & !e.getMessage().contains("Permission")) {
                 autoRetryCount++;
+                try {
+                    Thread.sleep(autoRetryInterval);
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                }
                 downloadURL(url);
             } else {
                 if (target != null) {
