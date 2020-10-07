@@ -54,6 +54,7 @@ public class UpdateChecker {
 
                         URL url = new URL(obj.getString("suggested_url"));
                         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                        Util.modifyUserAgent(connection);
                         connection.setConnectTimeout(10000);
                         byte[] buf = new byte[1024 * 10];
                         int l = 0;

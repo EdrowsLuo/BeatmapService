@@ -22,17 +22,24 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
+import java.util.Locale;
 
 public class Util {
 
     private static final HashSet<String> runningTasks = new HashSet<>();
+
+    public static HttpURLConnection modifyUserAgent(HttpURLConnection connection) {
+        connection.setRequestProperty("User-Agent", System.getProperty("http.agent")
+                + String.format(Locale.getDefault(), " BeatmapService/%s", BuildConfig.VERSION_NAME));
+        return connection;
+    }
 
     public static File getCoverOutputDir() {
         return new File(Environment.getExternalStorageDirectory(), "beatmapservice/image");
     }
 
     public static InputStream openUrl(String url) throws IOException {
-        return new URL(url).openConnection().getInputStream();
+        return modifyUserAgent((HttpURLConnection) new URL(url).openConnection()).getInputStream();
     }
 
     public static String timeToString(int s) {
@@ -94,6 +101,7 @@ public class Util {
                 maxRetryCount--;
                 URL u = new URL(url);
                 HttpURLConnection connection = (HttpURLConnection) u.openConnection();
+                modifyUserAgent(connection);
                 byte[] ary = readFullByteArray(connection.getInputStream());
                 connection.disconnect();
                 return ary;
@@ -168,7 +176,7 @@ public class Util {
         asyncCall(() -> {
             try {
                 URL url = new URL(urls);
-                onLoad.run(readFullString(url.openConnection().getInputStream()));
+                onLoad.run(readFullString(modifyUserAgent((HttpURLConnection) url.openConnection()).getInputStream()));
             } catch (Exception e) {
                 if (onErr != null) {
                     onErr.run(e);
@@ -193,6 +201,7 @@ public class Util {
         try {
             URL u = new URL(url);
             HttpURLConnection connection = (HttpURLConnection) u.openConnection();
+            modifyUserAgent(connection);
             String r = readFullString(connection.getInputStream());
             connection.disconnect();
             return r;
