@@ -508,7 +508,7 @@ public class BSMainActivity extends AppCompatActivity
 
         public ImageView std, taiko, ctb, mania;
 
-        public ImageButton downloadButton, previewButton, playButton;
+        public ImageButton downloadButton, previewButton;
 
         public TextView downloadText;
 
@@ -531,7 +531,6 @@ public class BSMainActivity extends AppCompatActivity
             downloadProgress = itemView.findViewById(R.id.progressBar);
             rankedStateView = itemView.findViewById(R.id.rankStateView);
             previewButton = itemView.findViewById(R.id.musicPreview);
-            playButton = itemView.findViewById(R.id.musicPlay);
         }
 
     }
@@ -611,19 +610,20 @@ public class BSMainActivity extends AppCompatActivity
                 });
             });
 
-            beatmapCardViewHolder.playButton.setOnClickListener(v -> {
+            beatmapCardViewHolder.body.setOnLongClickListener(v -> {
                 AudioView audioView = findViewById(R.id.visualCircle);
                 if (audioView.getAudioEntry() != null) {
                     audioView.getAudioEntry().pause();
                 }
+                Util.toast(BSMainActivity.this, "完整音频加载中...");
                 Util.asyncCall(() -> {
                     try {
-                        IAudioEntry preview = AudioVCore.createAudio(Util.readFullByteArray(
-                                Util.openUrl(BeatmapSiteManager.get().getDetailSite()
+                        IAudioEntry preview = AudioVCore.createAudio(Util.readFullByteArrayWithRetry(
+                                BeatmapSiteManager.get().getDetailSite()
                                         .getBeatmapInfoV2(info)
                                         .getBidData()
                                         .get(0)
-                                        .getAudioUrl())));
+                                        .getAudioUrl(), 5, 100));
                         runOnUiThread(() -> {
                             previewAudio(preview);
                         });
@@ -631,6 +631,7 @@ public class BSMainActivity extends AppCompatActivity
                         e.printStackTrace();
                     }
                 });
+                return true;
             });
 
             if (DownloadHolder.get().getCallbackContainer(sid) != null) {
