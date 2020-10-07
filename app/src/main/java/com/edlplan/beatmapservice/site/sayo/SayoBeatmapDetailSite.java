@@ -1,8 +1,8 @@
 package com.edlplan.beatmapservice.site.sayo;
 
-import com.edlplan.beatmapservice.BuildConfig;
 import com.edlplan.beatmapservice.Util;
 import com.edlplan.beatmapservice.site.BeatmapInfo;
+import com.edlplan.beatmapservice.site.BeatmapInfoV2;
 import com.edlplan.beatmapservice.site.IBeatmapDetailSite;
 import com.edlplan.beatmapservice.site.IBeatmapSetInfo;
 
@@ -80,6 +80,51 @@ public class SayoBeatmapDetailSite implements IBeatmapDetailSite {
         }
         return null;
     }
+
+    @Override
+    public BeatmapInfoV2 getBeatmapInfoV2(IBeatmapSetInfo setInfo) {
+        try {
+            URL url = new URL("https://api.sayobot.cn/v2/beatmapinfo?0=" + setInfo.getBeatmapSetID());
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+            JSONObject obj = new JSONObject(Util.readFullString(connection.getInputStream()));
+            if (obj.getInt("status") != 0) {
+                return null;
+            }
+
+            BeatmapInfoV2 info = new BeatmapInfoV2();
+            obj = obj.getJSONObject("data");
+            JSONArray array = obj.getJSONArray("bid_data");
+            List<BeatmapInfoV2.BidData> list = new ArrayList<>();
+            for (int i = 0; i < array.length(); i++) {
+                JSONObject bd = array.getJSONObject(i);
+                BeatmapInfoV2.BidData data = new BeatmapInfoV2.BidData();
+                if (bd.getString("bg").trim().length() != 0) {
+                    data.setBackgroundUrl(String.format(
+                            Locale.getDefault(),
+                            "https://dl.sayobot.cn/beatmaps/files/%d/%s",
+                            setInfo.getBeatmapSetID(), bd.getString("bg")));
+                }
+                if (bd.getString("audio").trim().length() != 0) {
+                    data.setAudioUrl(String.format(
+                            Locale.getDefault(),
+                            "https://dl.sayobot.cn/beatmaps/files/%d/%s",
+                            setInfo.getBeatmapSetID(), bd.getString("audio")));
+                }
+                list.add(data);
+            }
+            info.setBidData(list);
+            return info;
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 
     private static int[] divideToStrain(CharSequence s) {
         int[] l = new int[s.length()];

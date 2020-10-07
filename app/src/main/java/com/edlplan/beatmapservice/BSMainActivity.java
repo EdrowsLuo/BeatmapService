@@ -12,24 +12,24 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.CardView;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.OrientationHelper;
-import android.support.v7.widget.RecyclerView;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.CardView;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.OrientationHelper;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -40,7 +40,6 @@ import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.SearchView;
 import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -51,13 +50,13 @@ import com.edlplan.audiov.platform.android.AudioView;
 import com.edlplan.audiov.platform.bass.BassPlugin;
 import com.edlplan.beatmapservice.download.DownloadCenter;
 import com.edlplan.beatmapservice.download.DownloadHolder;
+import com.edlplan.beatmapservice.download.Downloader;
 import com.edlplan.beatmapservice.site.BeatmapFilterInfo;
 import com.edlplan.beatmapservice.site.BeatmapListType;
 import com.edlplan.beatmapservice.site.BeatmapSiteManager;
 import com.edlplan.beatmapservice.site.GameModes;
 import com.edlplan.beatmapservice.site.IBeatmapSetInfo;
 import com.edlplan.beatmapservice.site.RankedState;
-import com.edlplan.beatmapservice.download.Downloader;
 import com.edlplan.beatmapservice.site.sayo.SayoServerSelector;
 import com.edlplan.framework.utils.functionality.SmartIterator;
 import com.tencent.bugly.Bugly;
@@ -609,6 +608,30 @@ public class BSMainActivity extends AppCompatActivity
                         e.printStackTrace();
                     }
                 });
+            });
+
+            beatmapCardViewHolder.body.setOnLongClickListener(v -> {
+                AudioView audioView = findViewById(R.id.visualCircle);
+                if (audioView.getAudioEntry() != null) {
+                    audioView.getAudioEntry().pause();
+                }
+                Util.toast(BSMainActivity.this, "完整音频加载中...");
+                Util.asyncCall(() -> {
+                    try {
+                        IAudioEntry preview = AudioVCore.createAudio(Util.readFullByteArrayWithRetry(
+                                BeatmapSiteManager.get().getDetailSite()
+                                        .getBeatmapInfoV2(info)
+                                        .getBidData()
+                                        .get(0)
+                                        .getAudioUrl(), 5, 100));
+                        runOnUiThread(() -> {
+                            previewAudio(preview);
+                        });
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+                return true;
             });
 
             if (DownloadHolder.get().getCallbackContainer(sid) != null) {
