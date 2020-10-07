@@ -139,7 +139,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
             bindPreferenceSummaryToValue(findPreference("default_download_path"));
             bindPreferenceSummaryToValue(findPreference("default_download_path_mania"));
-            bindPreferenceSummaryToValue(findPreference("beatmap_origin"));
         }
 
         @Override
