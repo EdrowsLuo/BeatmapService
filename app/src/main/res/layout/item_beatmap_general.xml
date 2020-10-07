@@ -145,6 +145,17 @@
                 android:scaleType="centerCrop"
                 app:srcCompat="@drawable/music" />
 
+            <ImageButton
+                android:id="@+id/musicPlay"
+                android:layout_width="48dp"
+                android:layout_height="42dp"
+                android:layout_alignParentBottom="true"
+                android:layout_marginBottom="3dp"
+                android:layout_toLeftOf="@id/musicPreview"
+                android:backgroundTint="#FFFFFF"
+                android:scaleType="centerCrop"
+                app:srcCompat="@drawable/full_play" />
+
             <TextView
                 android:id="@+id/progressText"
                 android:layout_width="wrap_content"
