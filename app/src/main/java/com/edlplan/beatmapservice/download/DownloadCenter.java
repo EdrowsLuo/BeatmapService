@@ -1,10 +1,13 @@
 package com.edlplan.beatmapservice.download;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
+import com.edlplan.beatmapservice.MyDialog;
+import com.edlplan.beatmapservice.R;
 import com.edlplan.beatmapservice.Zip;
 import com.edlplan.beatmapservice.site.GameModes;
 import com.edlplan.beatmapservice.site.IBeatmapSetInfo;
@@ -52,7 +55,28 @@ public class DownloadCenter {
         }).start();
     }
 
+    @SuppressLint("ApplySharedPref")
     public static void download(Context context, IBeatmapSetInfo info, Downloader.Callback callback) {
+        if ((GameModes.STD & info.getModes()) == 0) {
+            if (!PreferenceManager.getDefaultSharedPreferences(context).getBoolean("download_none_std", false)) {
+                MyDialog.showForTask(context,
+                        R.string.warning,
+                        R.string.none_std_confirm_text,
+                        dialog -> {
+                            PreferenceManager.getDefaultSharedPreferences(context).edit()
+                                    .putBoolean("download_none_std", true)
+                                    .commit();
+                            dialog.dismiss();
+                            download(context, info, callback);
+                        },
+                        dialog -> {
+                            dialog.dismiss();
+                            callback.onError(new RuntimeException("Canceled"));
+                        });
+                return;
+            }
+
+        }
         download(context, info.getBeatmapSetID(), directoryToFile(findDirectory(context, info)), callback,
                 PreferenceManager.getDefaultSharedPreferences(context).getBoolean("auto_unzip", false), info);
     }

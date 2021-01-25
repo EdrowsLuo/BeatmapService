@@ -7,6 +7,7 @@
         <item>Bloodcat(过时的)</item>
     </string-array>
     <string name="storage_permission">这个应用需要存储权限！</string>
+    <string name="storage_permission_granted"> 成功获取存储权限!</string>
     <string name="setting">设置</string>
     <string name="help">帮助</string>
     <string name="download_setting">下载设置</string>
@@ -21,4 +22,6 @@
     <string name="cancel">取消</string>
     <string name="support_text">支持开发者/镜像站</string>
     <string name="osu_droid_download">osu!droid游戏下载</string>
+    <string name="none_std_confirm_text">您正在下载一个osu!droid不支持的谱面，点击OK确认后继续下载</string>
+    <string name="warning">提示</string>
 </resources>

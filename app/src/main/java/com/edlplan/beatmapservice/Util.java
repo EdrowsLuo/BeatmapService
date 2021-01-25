@@ -2,11 +2,9 @@ package com.edlplan.beatmapservice;
 
 import android.app.Activity;
 import android.os.Environment;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
-
-import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -139,6 +137,10 @@ public class Util {
     }
 
     public static void toast(Activity activity, String txt) {
+        activity.runOnUiThread(() -> Toast.makeText(activity, txt, Toast.LENGTH_SHORT).show());
+    }
+
+    public static void toast(Activity activity, int txt) {
         activity.runOnUiThread(() -> Toast.makeText(activity, txt, Toast.LENGTH_SHORT).show());
     }
 

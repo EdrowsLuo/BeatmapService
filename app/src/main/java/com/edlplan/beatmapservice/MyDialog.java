@@ -2,9 +2,9 @@ package com.edlplan.beatmapservice;
 
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.widget.TextView;
 
 public class MyDialog extends Dialog {
@@ -64,4 +64,24 @@ public class MyDialog extends Dialog {
         dialog.setOnSure(run);
         dialog.show();
     }
+
+    public static void showForTask(Context context, String title, String description, Util.RunnableWithParam<Dialog> run, OnCancelListener onCancel) {
+        MyDialog dialog = new MyDialog(context);
+        dialog.setTitle(title);
+        dialog.setDescription(description);
+        dialog.setOnSure(run);
+        dialog.setOnCancelListener(onCancel);
+        dialog.show();
+    }
+
+    public static void showForTask(Context context, int title, int description, Util.RunnableWithParam<Dialog> run, OnCancelListener onCancel) {
+        MyDialog dialog = new MyDialog(context);
+        dialog.setTitle(title);
+        dialog.setDescription(description);
+        dialog.setOnSure(run);
+        dialog.setOnCancelListener(onCancel);
+        dialog.show();
+    }
+
+
 }

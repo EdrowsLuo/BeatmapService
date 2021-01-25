@@ -107,6 +107,9 @@
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="storage_permission">this app need storage permission!</string>
+    <string name="storage_permission_granted">Storage permission granted!</string>
     <string name="support_text">Support creator&amp;mirror</string>
     <string name="osu_droid_download">osu!droid Download</string>
+    <string name="none_std_confirm_text">You are trying to download a beatmap that osu!droid not supported，click OK to continue download</string>
+    <string name="warning">Warning</string>
 </resources>
