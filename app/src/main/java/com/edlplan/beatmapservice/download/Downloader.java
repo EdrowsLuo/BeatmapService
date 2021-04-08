@@ -23,6 +23,8 @@ import javax.net.ssl.SSLHandshakeException;
 
 public class Downloader {
 
+    public static final String[] ESCAPE_CHARACTER_LIST = {"\\", "/", ":", "*", "?", "\"", "<", ">", "|"};
+
     private URL url;
 
     private File targetDirectory;
@@ -87,11 +89,11 @@ public class Downloader {
                     URLUtil.guessFileName(url.toString(), connection.getHeaderField("Content-Disposition"), null),
                     "UTF-8"
             ) : filenameOverride;
+
             System.out.println("guess file name " + name);
-            if (name.contains("/")) {
-                name = name.replace('/', '&');
-                System.out.println("new file name " + name);
-            }
+            name = escapeFilename(name);
+            System.out.println("new file name " + name);
+
             /*if (connection.getHeaderField("Content-Disposition") != null) {
                 String[] spl = connection.getHeaderField("Content-Disposition").split(";");
                 name = getPair(spl[0].trim())[1];
@@ -165,6 +167,15 @@ public class Downloader {
     }
 
 
+    public String escapeFilename(String old) {
+        for (String c : ESCAPE_CHARACTER_LIST) {
+            if (old.contains(c)) {
+                old = old.replace(c, "_");
+            }
+        }
+        return old;
+    }
+
 
     public void start() {
         (new Thread() {
@@ -177,7 +188,6 @@ public class Downloader {
             }
         }).start();
     }
-
 
 
     public interface Callback {
