@@ -745,7 +745,7 @@ public class BSMainActivity extends AppCompatActivity
                             });
                         }
                     });
-                    DownloadHolder.get().initialCallback(sid, container);
+
                     DownloadCenter.download(BSMainActivity.this, info, container,pickedDir);
                     v.setOnClickListener(null);
                 });

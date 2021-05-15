@@ -321,7 +321,6 @@ public class BeatmapDetailActivity extends AppCompatActivity {
             findViewById(R.id.download).setOnClickListener(v -> {
                 if (!loaded) return;
                 Downloader.CallbackContainer container = new Downloader.CallbackContainer();
-                DownloadHolder.get().initialCallback(info.getBeatmapSetID(), container);
                 DownloadCenter.download(BeatmapDetailActivity.this, info, container,pickedDir );
                 updateInfoBind();
             });

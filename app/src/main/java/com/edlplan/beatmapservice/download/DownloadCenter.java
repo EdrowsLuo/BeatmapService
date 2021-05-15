@@ -24,8 +24,19 @@ import java.util.Locale;
 
 public class DownloadCenter {
 
-    public static void download(Context context, int id, File dir, Downloader.Callback callback, boolean unzip, IBeatmapSetInfo info, DocumentFile pickedDir) {
+    public static void download(Context context, int id, File dir, Downloader.CallbackContainer callback, boolean unzip, IBeatmapSetInfo info, DocumentFile pickedDir) {
         new Thread(() -> {
+            DownloadHolder downloadHolder = DownloadHolder.get();
+            DownloadHolder.get().initialCallback(id, callback);
+            int num = downloadHolder.currentRunningNum();
+            while (num > 3) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                num = downloadHolder.currentRunningNum();
+            }
             Downloader downloader = new Downloader();
             downloader.setTargetDirectory(dir);
             try {
@@ -59,7 +70,7 @@ public class DownloadCenter {
     }
 
     @SuppressLint("ApplySharedPref")
-    public static void download(Context context, IBeatmapSetInfo info, Downloader.Callback callback,DocumentFile pickedDir) {
+    public static void download(Context context, IBeatmapSetInfo info, Downloader.CallbackContainer callback,DocumentFile pickedDir) {
         if ((GameModes.STD & info.getModes()) == 0) {
             if (!PreferenceManager.getDefaultSharedPreferences(context).getBoolean("download_none_std", false)) {
                 MyDialog.showForTask(context,
