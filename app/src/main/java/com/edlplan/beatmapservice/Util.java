@@ -1,14 +1,23 @@
 package com.edlplan.beatmapservice;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Environment;
+
 import androidx.annotation.Nullable;
+import androidx.documentfile.provider.DocumentFile;
+
+import android.provider.DocumentsContract;
 import android.util.Log;
+import android.webkit.MimeTypeMap;
 import android.widget.Toast;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -132,7 +141,7 @@ public class Util {
         return new String(readFullByteArray(in), "UTF-8");
     }
 
-    public static String readFullString(InputStream in,String charset) throws IOException {
+    public static String readFullString(InputStream in, String charset) throws IOException {
         return new String(readFullByteArray(in), charset);
     }
 
@@ -161,7 +170,7 @@ public class Util {
             }
             runningTasks.add(key);
         }
-        (new Thread(()->{
+        (new Thread(() -> {
             try {
                 runnable.run();
             } catch (Exception e) {
@@ -259,4 +268,121 @@ public class Util {
     public interface RunnableWithParam<T> {
         void run(T t);
     }
+
+    public static String getNameFromFilename(String filename) {
+        int dotPosition = filename.lastIndexOf('.');
+        if (dotPosition != -1) {
+            return filename.substring(0, dotPosition);
+        }
+        return "";
+    }
+
+
+    private static String getTypeForFile(DocumentFile file) {
+        if (file.isDirectory()) {
+            return DocumentsContract.Document.MIME_TYPE_DIR;
+        } else {
+            return getTypeForName(file.getName());
+        }
+    }
+
+    public static String getTypeForName(String name) {
+        final int lastDot = name.lastIndexOf('.');
+        if (lastDot >= 0) {
+            final String extension = name.substring(lastDot + 1).toLowerCase();
+            final String mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+            if (mime != null) {
+                return mime;
+            }
+        }
+
+        return "application/octet-stream";
+    }
+
+
+    /**
+     * @return A string suitable for display in bytes, kilobytes or megabytes
+     * depending on its size.
+     */
+
+
+    public static boolean moveDocument(Context context, DocumentFile fileFrom, DocumentFile fileTo) {
+
+        if (fileTo.isDirectory() /*&& fileTo.canWrite()*/) {
+            if (fileFrom.isFile()) {
+                return copyDocument(context, fileFrom, fileTo);
+            } else if (fileFrom.isDirectory()) {
+                DocumentFile[] filesInDir = fileFrom.listFiles();
+                DocumentFile filesToDir = fileTo.findFile(fileFrom.getName());
+                if (filesToDir == null) {
+                    filesToDir = fileTo.createDirectory(fileFrom.getName());
+                    if (!filesToDir.exists()) {
+                        return false;
+                    }
+                }
+                for (int i = 0; i < filesInDir.length; i++) {
+                    moveDocument(context, filesInDir[i], filesToDir);
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean copyDocument(Context context, DocumentFile file, DocumentFile dest) {
+        if (!file.exists() || file.isDirectory()) {
+            Log.v("FileUtils", "copyDocument: file not exist or is directory, " + file);
+            return false;
+        }
+        BufferedOutputStream bos = null;
+        BufferedInputStream bis = null;
+        byte[] data = new byte[2048];
+        int read = 0;
+        try {
+            if (!dest.exists()) {
+                dest = dest.getParentFile().createDirectory(dest.getName());
+                if (!dest.exists()) {
+                    return false;
+                }
+            }
+
+            String mimeType = getTypeForFile(file);
+            String displayName = getNameFromFilename(file.getName());
+            DocumentFile destFile = dest.createFile(mimeType, displayName);
+
+            int n = 0;
+            while (destFile == null && n++ < 32) {
+                String destName = displayName + " (" + n + ")";
+                destFile = dest.createFile(mimeType, destName);
+            }
+
+            if (destFile == null) {
+                return false;
+            }
+
+            bos = new BufferedOutputStream(getOutputStream(context, destFile));
+            bis = new BufferedInputStream(getInputStream(context, file));
+            while ((read = bis.read(data, 0, 2048)) != -1) {
+                bos.write(data, 0, read);
+            }
+            return true;
+        } catch (FileNotFoundException e) {
+            Log.e("FileUtils", "copyDocument: file not found, " + file);
+            e.printStackTrace();
+        } catch (IOException e) {
+            Log.e("FileUtils", "copyDocument: " + e.toString());
+        }
+
+        return false;
+    }
+
+
+    public static OutputStream getOutputStream(Context context, DocumentFile documentFile) throws FileNotFoundException {
+        return context.getContentResolver().openOutputStream(documentFile.getUri());
+    }
+
+    public static InputStream getInputStream(Context context, DocumentFile documentFile) throws FileNotFoundException {
+        return context.getContentResolver().openInputStream(documentFile.getUri());
+    }
 }
+

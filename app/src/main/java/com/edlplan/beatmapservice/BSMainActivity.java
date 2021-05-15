@@ -4,10 +4,14 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import androidx.annotation.NonNull;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -16,6 +20,7 @@ import com.google.android.material.snackbar.Snackbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.PermissionChecker;
 import androidx.core.view.GravityCompat;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,6 +29,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.OrientationHelper;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.appcompat.widget.Toolbar;
+
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -73,6 +80,7 @@ public class BSMainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        pickedDir= initPermission(this);
 
         //com.tencent.bugly.proguard.an.c = BuildConfig.DEBUG;
         Beta.autoCheckUpgrade = PreferenceManager.getDefaultSharedPreferences(this).getBoolean("auto_update", true);
@@ -738,7 +746,7 @@ public class BSMainActivity extends AppCompatActivity
                         }
                     });
                     DownloadHolder.get().initialCallback(sid, container);
-                    DownloadCenter.download(BSMainActivity.this, info, container);
+                    DownloadCenter.download(BSMainActivity.this, info, container,pickedDir);
                     v.setOnClickListener(null);
                 });
             }
@@ -784,6 +792,57 @@ public class BSMainActivity extends AppCompatActivity
                 != PermissionChecker.PERMISSION_GRANTED
                 && EasyPermissions.somePermissionPermanentlyDenied(this, perms)) {
             new AppSettingsDialog.Builder(this).build().show();
+        }
+    }
+    DocumentFile pickedDir;
+    public DocumentFile initPermission(Activity activity) {
+        String path = PreferenceManager.getDefaultSharedPreferences(activity).getString("default_download_path", "default");
+        if (path.startsWith(Environment.getExternalStorageDirectory().toString())
+                || path.equals("default")
+                || Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP
+        ) {
+        } else {
+            SharedPreferences sp = activity.getSharedPreferences("DirPermission", Context.MODE_PRIVATE);
+            String uriTree = sp.getString("uriTree", "");
+            if (TextUtils.isEmpty(uriTree)) {
+                Util.toast(this, "请点击右下角的\"选择\"");
+                activity.startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), 3);
+                // 重新授权
+            } else {
+                try {
+                    Uri uri = Uri.parse(uriTree);
+                    final int takeFlags = activity.getIntent().getFlags()
+                            & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                    activity.getContentResolver().takePersistableUriPermission(uri, takeFlags);
+                    return DocumentFile.fromTreeUri(activity, uri);
+                } catch (SecurityException e) {
+                    activity.startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), 3);
+                }
+            }
+        }
+        return null;
+    }
+
+    public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
+        if (resultCode != RESULT_OK)
+            return;
+        else {
+            // 获取权限
+            Uri treeUri = resultData.getData();
+
+            final int takeFlags = resultData.getFlags()
+                    & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                getContentResolver().takePersistableUriPermission(treeUri, takeFlags);
+            }
+            // 保存获取的目录权限
+            SharedPreferences sp = getSharedPreferences("DirPermission", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putString("uriTree", treeUri.toString());
+            editor.apply();
+            pickedDir = DocumentFile.fromTreeUri(this, treeUri);
         }
     }
 }

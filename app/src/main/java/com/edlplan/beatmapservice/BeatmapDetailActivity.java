@@ -1,16 +1,25 @@
 package com.edlplan.beatmapservice;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.OrientationHelper;
 import androidx.recyclerview.widget.RecyclerView;
+
+import android.os.Environment;
+import android.preference.PreferenceManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -88,6 +97,7 @@ public class BeatmapDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_beatmap_details);
         setHalfTransparent();
+        pickedDir = initPermission(this);
 
         std = findViewById(R.id.imageViewStd);
         taiko = findViewById(R.id.imageViewTaiko);
@@ -173,7 +183,7 @@ public class BeatmapDetailActivity extends AppCompatActivity {
 
                             } catch (JSONException e) {
                                 e.printStackTrace();
-                                Util.toast(this,"加载失败");
+                                Util.toast(this, "加载失败");
                             }
                         }),
                         throwable -> {
@@ -312,7 +322,7 @@ public class BeatmapDetailActivity extends AppCompatActivity {
                 if (!loaded) return;
                 Downloader.CallbackContainer container = new Downloader.CallbackContainer();
                 DownloadHolder.get().initialCallback(info.getBeatmapSetID(), container);
-                DownloadCenter.download(BeatmapDetailActivity.this, info, container);
+                DownloadCenter.download(BeatmapDetailActivity.this, info, container,pickedDir );
                 updateInfoBind();
             });
         } else {
@@ -322,7 +332,7 @@ public class BeatmapDetailActivity extends AppCompatActivity {
             if (container.isErr()) {
                 DownloadHolder.get().initialCallback(info.getBeatmapSetID(), null);
                 updateInfoBind();
-                Util.toast(this,"已清除失败的下载任务");
+                Util.toast(this, "已清除失败的下载任务");
                 return;
             }
             progress.setVisibility(View.VISIBLE);
@@ -352,13 +362,13 @@ public class BeatmapDetailActivity extends AppCompatActivity {
     }
 
     private void loadDetails() {
-        (new Thread(() ->{
+        (new Thread(() -> {
             List<BeatmapInfo> list = BeatmapSiteManager.get().getDetailSite().getBeatmapInfo(info);
             if (list == null) {
                 Util.toast(this, "加载详细信息失败");
                 return;
             }
-            runOnUiThread(()->onLoadDetails(list));
+            runOnUiThread(() -> onLoadDetails(list));
         })).start();
     }
 
@@ -516,7 +526,6 @@ public class BeatmapDetailActivity extends AppCompatActivity {
         }
 
 
-
         ((TextView) findViewById(R.id.detailText)).setText(details.toString());
         changeCover(selectedInfo);
     }
@@ -525,7 +534,7 @@ public class BeatmapDetailActivity extends AppCompatActivity {
         valueBar.setValue((int) (v * 10));
         if (v > 10) {
             textView.setText(">10");
-        }else{
+        } else {
             textView.setText(String.format(Locale.getDefault(), "%.1f", v));
         }
     }
@@ -534,7 +543,7 @@ public class BeatmapDetailActivity extends AppCompatActivity {
         valueBar.setValue((int) (v * 10));
         if (v > 10) {
             textView.setText(">10");
-        }else{
+        } else {
             textView.setText(String.format(Locale.getDefault(), "%d", Math.round(v)));
         }
     }
@@ -625,4 +634,56 @@ public class BeatmapDetailActivity extends AppCompatActivity {
         }
     }
 
+    DocumentFile pickedDir;
+
+    public DocumentFile initPermission(Activity activity) {
+        String path = PreferenceManager.getDefaultSharedPreferences(activity).getString("default_download_path", "default");
+        if (path.startsWith(Environment.getExternalStorageDirectory().toString())
+                || path.equals("default")
+                || Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP
+        ) {
+        } else {
+            SharedPreferences sp = activity.getSharedPreferences("DirPermission", Context.MODE_PRIVATE);
+            String uriTree = sp.getString("uriTree", "");
+            if (TextUtils.isEmpty(uriTree)) {
+                Util.toast(this, "请点击右下角的\"选择\"");
+                activity.startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), 3);
+                // 重新授权
+            } else {
+                try {
+                    Uri uri = Uri.parse(uriTree);
+                    final int takeFlags = activity.getIntent().getFlags()
+                            & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                    activity.getContentResolver().takePersistableUriPermission(uri, takeFlags);
+                    return DocumentFile.fromTreeUri(activity, uri);
+                } catch (SecurityException e) {
+                    activity.startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), 3);
+                }
+            }
+        }
+        return null;
+    }
+
+    public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
+        if (resultCode != RESULT_OK)
+            return;
+        else {
+            // 获取权限
+            Uri treeUri = resultData.getData();
+
+            final int takeFlags = resultData.getFlags()
+                    & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                getContentResolver().takePersistableUriPermission(treeUri, takeFlags);
+            }
+            // 保存获取的目录权限
+            SharedPreferences sp = getSharedPreferences("DirPermission", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putString("uriTree", treeUri.toString());
+            editor.apply();
+            pickedDir = DocumentFile.fromTreeUri(this, treeUri);
+        }
+    }
 }

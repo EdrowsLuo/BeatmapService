@@ -1,13 +1,18 @@
 package com.edlplan.beatmapservice.download;
 
+import android.content.Context;
 import android.webkit.URLUtil;
+
+import androidx.documentfile.provider.DocumentFile;
 
 import com.edlplan.beatmapservice.BuildConfig;
 import com.edlplan.beatmapservice.Util;
+import com.edlplan.beatmapservice.Zip;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
@@ -24,6 +29,8 @@ import javax.net.ssl.SSLHandshakeException;
 public class Downloader {
 
     public static final String[] ESCAPE_CHARACTER_LIST = {"\\", "/", ":", "*", "?", "\"", "<", ">", "|"};
+    public DocumentFile pickedDir;
+    public Context context;
 
     private URL url;
 
@@ -110,36 +117,83 @@ public class Downloader {
             int l;
             int callbackRate = 0;
             InputStream inputStream = connection.getInputStream();
-            if (!targetDirectory.exists()) {
-                targetDirectory.mkdirs();
-            }
-            target = new File(targetDirectory, name + ".tmp");
-            if (!target.exists()) {
-                target.createNewFile();
-            }
-            FileOutputStream outputStream = new FileOutputStream(target);
+            if (this.pickedDir == null) {
 
-            while ((l = inputStream.read(buffer)) != -1) {
-                callbackRate++;
-                down += l;
-                if (callbackRate % 20 == 0) {
-                    callback.onProgress(down, size);
+                if (!targetDirectory.exists()) {
+                    targetDirectory.mkdirs();
                 }
-                outputStream.write(buffer, 0, l);
+                target = new File(targetDirectory, name + ".tmp");
+                if (!target.exists()) {
+                    target.createNewFile();
+                }
+                FileOutputStream outputStream = new FileOutputStream(target);
+
+                while ((l = inputStream.read(buffer)) != -1) {
+                    callbackRate++;
+                    down += l;
+                    if (callbackRate % 20 == 0) {
+                        callback.onProgress(down, size);
+                    }
+                    outputStream.write(buffer, 0, l);
+                }
+
+                outputStream.close();
+                connection.disconnect();
+                callback.onComplete();
+
+                File end = new File(targetDirectory, name);
+                target.renameTo(end);
+                target = end;
+
+                if (handleDownloadFile != null) {
+                    handleDownloadFile.run(target);
+                }
+
+            } else {
+                List<String> path = new ArrayList<>();
+                File tempDir = targetDirectory;
+                String dirName;
+                while (tempDir != null) {
+                    dirName = tempDir.getName();
+                    path.add(dirName);
+                    tempDir = tempDir.getParentFile();
+                }
+                DocumentFile dir = pickedDir;
+
+                for (int i = path.size() - 3; i >= 0; i -= 1) {
+                    dir = pickedDir.findFile(path.get(i));
+                }
+                assert dir != null;
+
+                File cacheDir = context.getApplicationContext().getExternalCacheDir();
+
+                target = new File(cacheDir, name);
+                if (!target.exists()) {
+                    target.createNewFile();
+                }
+
+
+                FileOutputStream outputStream = new FileOutputStream(target);
+                while ((l = inputStream.read(buffer)) != -1) {
+                    callbackRate++;
+                    down += l;
+                    if (callbackRate % 20 == 0) {
+                        callback.onProgress(down, size);
+                    }
+                    outputStream.write(buffer, 0, l);
+                }
+
+                outputStream.close();
+                connection.disconnect();
+                try {
+                    Zip.unzipDocumentFile(dir, target, context);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                // use param1 and param2 here
+
+                callback.onComplete();
             }
-
-            outputStream.close();
-            connection.disconnect();
-            callback.onComplete();
-
-            File end = new File(targetDirectory, name);
-            target.renameTo(end);
-            target = end;
-
-            if (handleDownloadFile != null) {
-                handleDownloadFile.run(target);
-            }
-
         } catch (SSLHandshakeException e) {
             e.printStackTrace();
             if (target != null) {
