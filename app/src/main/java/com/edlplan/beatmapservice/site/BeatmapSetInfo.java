@@ -12,6 +12,8 @@ public class BeatmapSetInfo implements IBeatmapSetInfo {
 
     private int favCount;
 
+    private int lastUpdate = 0;
+
     public void setTitle(String title) {
         this.title = title;
     }
@@ -73,5 +75,13 @@ public class BeatmapSetInfo implements IBeatmapSetInfo {
     @Override
     public int getBeatmapSetID() {
         return beatmapSetID;
+    }
+
+    public int getLastUpdate() {
+        return lastUpdate;
+    }
+
+    public void setLastUpdate(int lastUpdate) {
+        this.lastUpdate = lastUpdate;
     }
 }

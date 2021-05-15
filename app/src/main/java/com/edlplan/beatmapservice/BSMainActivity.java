@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -64,11 +65,13 @@ import com.edlplan.beatmapservice.site.GameModes;
 import com.edlplan.beatmapservice.site.IBeatmapSetInfo;
 import com.edlplan.beatmapservice.site.RankedState;
 import com.edlplan.beatmapservice.site.sayo.SayoServerSelector;
+import com.edlplan.beatmapservice.CacheManager;
 import com.edlplan.framework.utils.functionality.SmartIterator;
 import com.tencent.bugly.Bugly;
 import com.tencent.bugly.beta.Beta;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import pub.devrel.easypermissions.AppSettingsDialog;
@@ -81,6 +84,7 @@ public class BSMainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         pickedDir= initPermission(this);
+        cacheManager.loadCache(this);
 
         //com.tencent.bugly.proguard.an.c = BuildConfig.DEBUG;
         Beta.autoCheckUpgrade = PreferenceManager.getDefaultSharedPreferences(this).getBoolean("auto_update", true);
@@ -556,9 +560,19 @@ public class BSMainActivity extends AppCompatActivity
 
             IBeatmapSetInfo info = BeatmapSiteManager.get().getInfoSite().getInfoAt(i);
             final int sid = info.getBeatmapSetID();
+            String downloadedState = "";
+
+            if (cacheManager.downloadedSongs.containsKey(String.valueOf(sid))) {
+                int ts = cacheManager.downloadedSongs.get(String.valueOf(sid));
+                if (ts < info.getLastUpdate()) {
+                    downloadedState = "(U)";
+                } else {
+                    downloadedState = "(D)";
+                }
+            }
             final Activity context = (Activity) beatmapCardViewHolder.body.getContext();
             beatmapCardViewHolder.info = info;
-            beatmapCardViewHolder.title.setText(info.getTitle());
+            beatmapCardViewHolder.title.setText(downloadedState + info.getTitle());
             beatmapCardViewHolder.beatmapInfo.setText(String.format("Artist: %s\nCreator: %s", info.getArtist(), info.getCreator()));
             beatmapCardViewHolder.imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
             beatmapCardViewHolder.imageView.setImageAlpha(200);
@@ -845,4 +859,6 @@ public class BSMainActivity extends AppCompatActivity
             pickedDir = DocumentFile.fromTreeUri(this, treeUri);
         }
     }
+    CacheManager cacheManager = CacheManager.get();
+
 }

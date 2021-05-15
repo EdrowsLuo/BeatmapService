@@ -18,4 +18,5 @@ public interface IBeatmapSetInfo extends Serializable {
 
     int getFavCount();
 
+    int getLastUpdate();
 }
