@@ -14,10 +14,13 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+
 import androidx.annotation.NonNull;
+
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
+
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.PermissionChecker;
 import androidx.core.view.GravityCompat;
@@ -70,6 +73,9 @@ import com.edlplan.framework.utils.functionality.SmartIterator;
 import com.tencent.bugly.Bugly;
 import com.tencent.bugly.beta.Beta;
 
+import org.codehaus.jackson.map.ObjectMapper;
+
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -83,8 +89,9 @@ public class BSMainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        pickedDir= initPermission(this);
+        pickedDir = initPermission(this);
         cacheManager.loadCache(this);
+        loadKeyword(this);
 
         //com.tencent.bugly.proguard.an.c = BuildConfig.DEBUG;
         Beta.autoCheckUpgrade = PreferenceManager.getDefaultSharedPreferences(this).getBoolean("auto_update", true);
@@ -115,7 +122,6 @@ public class BSMainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-
 
 
         BeatmapSiteManager.get().getInfoSite().reset();
@@ -279,7 +285,6 @@ public class BSMainActivity extends AppCompatActivity
         });
 
 
-
         loadMore(true);
 
 
@@ -404,7 +409,7 @@ public class BSMainActivity extends AppCompatActivity
 
     private Spinner selectedServer;
 
-    private RadioButton hot,latest;
+    private RadioButton hot, latest;
 
     private CheckBox std, taiko, ctb, mania;
 
@@ -420,7 +425,6 @@ public class BSMainActivity extends AppCompatActivity
         if (info == null) {
             return;
         }
-
 
 
         findViewById(R.id.beatmapFilterLayout).setVisibility(View.GONE);
@@ -574,6 +578,20 @@ public class BSMainActivity extends AppCompatActivity
             beatmapCardViewHolder.info = info;
             beatmapCardViewHolder.title.setText(downloadedState + info.getTitle());
             beatmapCardViewHolder.beatmapInfo.setText(String.format("Artist: %s\nCreator: %s", info.getArtist(), info.getCreator()));
+            List<String> result;
+            List<String> appealKeywordList = new ArrayList<>();
+            result = hasKeyword(info.getTitle());
+            if (result != null) {
+                beatmapCardViewHolder.title.setTextColor(Color.RED);
+                appealKeywordList.addAll(result);
+            }
+            beatmapCardViewHolder.beatmapInfo.setText(String.format("Artist: %s\nCreator: %s", info.getArtist(), info.getCreator()));
+            result = hasKeyword(String.format("Artist: %s\nCreator: %s", info.getArtist(), info.getCreator()));
+            if (result != null) {
+                beatmapCardViewHolder.beatmapInfo.setTextColor(Color.RED);
+                appealKeywordList.addAll(result);
+            }
+
             beatmapCardViewHolder.imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
             beatmapCardViewHolder.imageView.setImageAlpha(200);
             beatmapCardViewHolder.imageView.setImageResource(R.drawable.cover);
@@ -684,7 +702,7 @@ public class BSMainActivity extends AppCompatActivity
 
                                 @Override
                                 public void onError(Throwable e) {
-                                    context.runOnUiThread(() ->{
+                                    context.runOnUiThread(() -> {
                                         Toast.makeText(context, "err: " + e, Toast.LENGTH_LONG).show();
                                         notifyDataSetChanged();
                                     });
@@ -760,7 +778,7 @@ public class BSMainActivity extends AppCompatActivity
                         }
                     });
 
-                    DownloadCenter.download(BSMainActivity.this, info, container,pickedDir);
+                    DownloadCenter.download(BSMainActivity.this, info, container, pickedDir);
                     v.setOnClickListener(null);
                 });
             }
@@ -808,7 +826,9 @@ public class BSMainActivity extends AppCompatActivity
             new AppSettingsDialog.Builder(this).build().show();
         }
     }
+
     DocumentFile pickedDir;
+
     public DocumentFile initPermission(Activity activity) {
         String path = PreferenceManager.getDefaultSharedPreferences(activity).getString("default_download_path", "default");
         if (path.startsWith(Environment.getExternalStorageDirectory().toString())
@@ -859,6 +879,45 @@ public class BSMainActivity extends AppCompatActivity
             pickedDir = DocumentFile.fromTreeUri(this, treeUri);
         }
     }
+
     CacheManager cacheManager = CacheManager.get();
 
+    public List<String> keywordList = new ArrayList();
+
+    public List<String> hasKeyword(String text) {
+        text = text.toLowerCase();
+        String colonList = "()-~,_[]～";
+        for (int i = 0; i < colonList.length(); i++) {
+            char colon = colonList.charAt(i);
+            text = text.replace(colon, ' ');
+        }
+        while (text.contains("  ")) {
+            text = text.replace("  ", " ");
+        }
+        List<String> appealKeywordList = new ArrayList();
+        for (String keyword : keywordList) {
+            if (text.contains(keyword)) {
+                appealKeywordList.add(keyword);
+            }
+        }
+        if (appealKeywordList.isEmpty()) {
+            return null;
+        } else {
+            return appealKeywordList;
+
+        }
+    }
+
+    public void loadKeyword(Context context
+    ) {
+        File file = new File(Environment.getExternalStorageDirectory(), "osu!droid/Keyword.json");
+        if (file.exists()) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            try {
+                keywordList = objectMapper.readValue(file, keywordList.getClass());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }
