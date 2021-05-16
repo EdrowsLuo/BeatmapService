@@ -136,6 +136,7 @@ public class SayoBeatmapListSite implements IBeatmapListSite {
                     setInfo.setModes(obj.getInt("modes"));
                     setInfo.setRankedState(obj.getInt("approved"));
                     setInfo.setFavCount(obj.getInt("favourite_count"));
+                    setInfo.setLastUpdate(obj.getInt("lastupdate"));
                     loadedSets.add(setInfo);
                 }
                 preIndex = endid;
