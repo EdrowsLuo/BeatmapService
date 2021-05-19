@@ -209,21 +209,21 @@
                             android:id="@+id/taiko"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:checked="true"
+                            android:checked="false"
                             android:text="Taiko" />
 
                         <CheckBox
                             android:id="@+id/ctb"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:checked="true"
+                            android:checked="false"
                             android:text="CTB" />
 
                         <CheckBox
                             android:id="@+id/mania"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:checked="true"
+                            android:checked="false"
                             android:text="Mania" />
                     </TableRow>
                 </TableLayout>
@@ -269,6 +269,14 @@
                     android:layout_marginLeft="-5dp"
                     android:checked="false"
                     android:text="启用参数过滤" />
+                <CheckBox
+                    android:id="@+id/updateCache"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/classTypeLayout"
+                    android:layout_marginLeft="120dp"
+                    android:checked="false"
+                    android:text="更新缓存" />
 
                 <EditText
                     android:id="@+id/valueLimitText"

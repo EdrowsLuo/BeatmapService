@@ -240,7 +240,9 @@ public class BSMainActivity extends AppCompatActivity
                 limitText.setVisibility(View.GONE);
             }
         });
-
+        (updateCacheButton = findViewById(R.id.updateCache)).setOnCheckedChangeListener((buttonView, isChecked) -> {
+            cacheManager.updateCache(this);
+        });
         std = findViewById(R.id.std);
         taiko = findViewById(R.id.taiko);
         ctb = findViewById(R.id.ctb);
@@ -285,7 +287,7 @@ public class BSMainActivity extends AppCompatActivity
         });
 
 
-        loadMore(true);
+        search();
 
 
         // 现在 Sayobot cdn 直接提供国外支持了
@@ -415,7 +417,7 @@ public class BSMainActivity extends AppCompatActivity
 
     private CheckBox ranked, qualified, loved, pending, graveyard;
 
-    private CheckBox enableValueLimit;
+    private CheckBox enableValueLimit,updateCacheButton;
 
     private TextView limitText;
 
