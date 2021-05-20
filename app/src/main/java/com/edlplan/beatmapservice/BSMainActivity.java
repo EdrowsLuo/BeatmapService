@@ -512,7 +512,7 @@ public class BSMainActivity extends AppCompatActivity
 
         public ImageView imageView;
 
-        public TextView title, beatmapInfo,likeCountView;
+        public TextView title, beatmapInfo, likeCountView;
 
         public CardView body;
 
@@ -566,6 +566,11 @@ public class BSMainActivity extends AppCompatActivity
             }
 
             IBeatmapSetInfo info = BeatmapSiteManager.get().getInfoSite().getInfoAt(i);
+            for (int j = 1; i + j < BeatmapSiteManager.get().getInfoSite().getLoadedBeatmapSetCount() && j < 10; j++) {
+                CoverPool.preloadCoverBitmap(
+                        beatmapCardViewHolder.beatmapInfo.getContext(),
+                        BeatmapSiteManager.get().getInfoSite().getInfoAt(i + j).getBeatmapSetID());
+            }
             final int sid = info.getBeatmapSetID();
             String downloadedState = "";
 
