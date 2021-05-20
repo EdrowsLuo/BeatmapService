@@ -1,6 +1,7 @@
 package com.edlplan.beatmapservice;
 
 import android.content.Context;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -48,6 +49,9 @@ public class CacheManager {
     public void updateCache(Context context) {
         String path = PreferenceManager.getDefaultSharedPreferences(context)
                 .getString("default_download_path", "default");
+        if(path=="default"){
+            path= Environment.getExternalStorageDirectory()+ "osu!droid/Keyword.json";
+        }
         File songDir = new File(path);
         File[] songList = songDir.listFiles();
         if (songList == null) {
