@@ -36,7 +36,7 @@ public class CoverPool {
                     onloadDone.run();
                     return;
                 }
-                URL url = new URL(String.format("https://cdn.sayobot.cn:25225/beatmaps/%d/covers/cover.jpg?0", sid));
+                URL url = new URL(String.format("https://a.sayobot.cn/beatmaps/%d/covers/cover.webp?0", sid));
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 Util.modifyUserAgent(connection);
                 if (connection.getResponseCode() == 200) {
