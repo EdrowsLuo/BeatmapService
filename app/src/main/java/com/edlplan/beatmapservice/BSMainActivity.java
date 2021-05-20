@@ -512,7 +512,7 @@ public class BSMainActivity extends AppCompatActivity
 
         public ImageView imageView;
 
-        public TextView title, beatmapInfo;
+        public TextView title, beatmapInfo,likeCountView;
 
         public CardView body;
 
@@ -541,6 +541,7 @@ public class BSMainActivity extends AppCompatActivity
             downloadProgress = itemView.findViewById(R.id.progressBar);
             rankedStateView = itemView.findViewById(R.id.rankStateView);
             previewButton = itemView.findViewById(R.id.musicPreview);
+            likeCountView = itemView.findViewById(R.id.likeCount);
         }
 
     }
@@ -603,6 +604,7 @@ public class BSMainActivity extends AppCompatActivity
             beatmapCardViewHolder.ctb.setVisibility(((modes & GameModes.CTB) != 0) ? View.VISIBLE : View.GONE);
             beatmapCardViewHolder.mania.setVisibility(((modes & GameModes.MANIA) != 0) ? View.VISIBLE : View.GONE);
             beatmapCardViewHolder.rankedStateView.setText(RankedState.stateIntToString(info.getRankedState()));
+            beatmapCardViewHolder.likeCountView.setText(String.valueOf(info.getFavCount()));
 
             Bitmap cover = CoverPool.getCoverBitmap(sid);
             if (cover == null) {
