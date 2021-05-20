@@ -334,6 +334,7 @@ public class Util {
             Log.v("FileUtils", "copyDocument: file not exist or is directory, " + file);
             return false;
         }
+
         BufferedOutputStream bos = null;
         BufferedInputStream bis = null;
         byte[] data = new byte[2048];
@@ -348,7 +349,12 @@ public class Util {
 
             String mimeType = getTypeForFile(file);
             String displayName = getNameFromFilename(file.getName());
-            DocumentFile destFile = dest.createFile(mimeType, displayName);
+            DocumentFile destFile = dest.findFile(file.getName());
+            if (destFile != null && file.length() == destFile.length()) {
+                return true;
+            }else{
+                destFile = dest.createFile(mimeType, displayName);
+            }
 
             int n = 0;
             while (destFile == null && n++ < 32) {
