@@ -59,7 +59,7 @@ public class Zip {
             e.printStackTrace();
         } finally {
             oszFile.delete();
-            tempDir.delete();
+            Util.deleteDirWithFile(tempDir);
         }
     }
 }
