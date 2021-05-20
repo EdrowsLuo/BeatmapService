@@ -29,12 +29,10 @@ public class Zip {
     }
 
     public static void unzipDocumentFile(DocumentFile songsDir, File oszFile, Context context) throws IOException {
-
-
+        String fileName = oszFile.getName();
+        File tempDir = new File(oszFile.getParentFile(), fileName.substring(0, fileName.lastIndexOf('.')));
+        tempDir.mkdirs();
         try {
-            String fileName = oszFile.getName();
-
-            File tempDir = new File(oszFile.getParentFile(), fileName.substring(0, fileName.lastIndexOf('.')));
             ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(oszFile));
             ZipEntry entry;
             while ((entry = zipInputStream.getNextEntry()) != null) {
@@ -61,6 +59,7 @@ public class Zip {
             e.printStackTrace();
         } finally {
             oszFile.delete();
+            tempDir.delete();
         }
     }
 }
