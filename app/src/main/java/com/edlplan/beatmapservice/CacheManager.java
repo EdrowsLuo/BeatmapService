@@ -16,7 +16,7 @@ import java.util.Map;
 public class CacheManager {
     public Map<String, Integer> downloadedSongs = new HashMap<>();
     private static final CacheManager cacheManager = new CacheManager();
-
+    public boolean ignoreDownloaded=true;
     public static CacheManager get() {
         return cacheManager;
     }
@@ -50,7 +50,7 @@ public class CacheManager {
         String path = PreferenceManager.getDefaultSharedPreferences(context)
                 .getString("default_download_path", "default");
         if(path=="default"){
-            path= Environment.getExternalStorageDirectory()+ "osu!droid/Keyword.json";
+            path= Environment.getExternalStorageDirectory()+ "osu!droid/Songs";
         }
         File songDir = new File(path);
         File[] songList = songDir.listFiles();

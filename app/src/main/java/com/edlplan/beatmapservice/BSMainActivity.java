@@ -243,6 +243,10 @@ public class BSMainActivity extends AppCompatActivity
         (updateCacheButton = findViewById(R.id.updateCache)).setOnCheckedChangeListener((buttonView, isChecked) -> {
             cacheManager.updateCache(this);
         });
+        (downloadFilter = findViewById(R.id.downloadFilter)).setOnCheckedChangeListener((buttonView, isChecked) -> {
+            cacheManager.ignoreDownloaded = isChecked;
+            findViewById(R.id.refresh).callOnClick();
+        });
         std = findViewById(R.id.std);
         taiko = findViewById(R.id.taiko);
         ctb = findViewById(R.id.ctb);
@@ -417,7 +421,7 @@ public class BSMainActivity extends AppCompatActivity
 
     private CheckBox ranked, qualified, loved, pending, graveyard;
 
-    private CheckBox enableValueLimit,updateCacheButton;
+    private CheckBox enableValueLimit, updateCacheButton, downloadFilter;
 
     private TextView limitText;
 
@@ -497,6 +501,9 @@ public class BSMainActivity extends AppCompatActivity
                 BeatmapSiteManager.get().getInfoSite().tryToLoadMoreBeatmapSet();
                 loading = false;
                 runOnUiThread(adapter::notifyDataSetChanged);
+                for (int sid : BeatmapSiteManager.get().getInfoSite().getNewLoadedSetsIDs()) {
+                    CoverPool.preloadCoverBitmap(this, sid);
+                }
             })).start();
         } else {
             Toast.makeText(this, "没有更多的铺面了", Toast.LENGTH_SHORT).show();
@@ -566,11 +573,6 @@ public class BSMainActivity extends AppCompatActivity
             }
 
             IBeatmapSetInfo info = BeatmapSiteManager.get().getInfoSite().getInfoAt(i);
-            for (int j = 1; i + j < BeatmapSiteManager.get().getInfoSite().getLoadedBeatmapSetCount() && j < 10; j++) {
-                CoverPool.preloadCoverBitmap(
-                        beatmapCardViewHolder.beatmapInfo.getContext(),
-                        BeatmapSiteManager.get().getInfoSite().getInfoAt(i + j).getBeatmapSetID());
-            }
             final int sid = info.getBeatmapSetID();
             String downloadedState = "";
 
