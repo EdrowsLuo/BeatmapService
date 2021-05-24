@@ -306,13 +306,13 @@ public class Util {
      */
 
 
-    public static boolean moveDocument(Context context, DocumentFile fileFrom, DocumentFile fileTo) {
+    public static boolean moveDocument(Context context, File fileFrom, DocumentFile fileTo) {
 
         if (fileTo.isDirectory() /*&& fileTo.canWrite()*/) {
             if (fileFrom.isFile()) {
                 return copyDocument(context, fileFrom, fileTo);
             } else if (fileFrom.isDirectory()) {
-                DocumentFile[] filesInDir = fileFrom.listFiles();
+                File[] filesInDir = fileFrom.listFiles();
                 DocumentFile filesToDir = fileTo.findFile(fileFrom.getName());
                 if (filesToDir == null) {
                     filesToDir = fileTo.createDirectory(fileFrom.getName());
@@ -329,67 +329,31 @@ public class Util {
         return false;
     }
 
-    public static boolean copyDocument(Context context, DocumentFile file, DocumentFile dest) {
+    public static boolean copyDocument(Context context, File file, DocumentFile dest) {
         if (!file.exists() || file.isDirectory()) {
             Log.v("FileUtils", "copyDocument: file not exist or is directory, " + file);
             return false;
         }
-
-        BufferedOutputStream bos = null;
-        BufferedInputStream bis = null;
-        byte[] data = new byte[2048];
-        int read = 0;
         try {
-            if (!dest.exists()) {
-                dest = dest.getParentFile().createDirectory(dest.getName());
-                if (!dest.exists()) {
-                    return false;
-                }
-            }
-
-            String mimeType = getTypeForFile(file);
-            String displayName = getNameFromFilename(file.getName());
             DocumentFile destFile = dest.findFile(file.getName());
-            if (destFile != null && file.length() == destFile.length()) {
-                return true;
-            }else{
-                destFile = dest.createFile(mimeType, displayName);
+            if (destFile != null) {
+                if (destFile.length() == file.length()) {
+                    return true;
+                }
+            } else {
+                destFile = dest.createFile("application/octet-stream", file.getName());
             }
-
-            int n = 0;
-            while (destFile == null && n++ < 32) {
-                String destName = displayName + " (" + n + ")";
-                destFile = dest.createFile(mimeType, destName);
-            }
-
-            if (destFile == null) {
-                return false;
-            }
-
-            bos = new BufferedOutputStream(getOutputStream(context, destFile));
-            bis = new BufferedInputStream(getInputStream(context, file));
-            while ((read = bis.read(data, 0, 2048)) != -1) {
-                bos.write(data, 0, read);
-            }
-            return true;
+            FileInputStream fileInputStream = new FileInputStream(file);
+            OutputStream outputStream = context.getContentResolver().openOutputStream(destFile.getUri());
+            flow(fileInputStream, outputStream);
         } catch (FileNotFoundException e) {
-            Log.e("FileUtils", "copyDocument: file not found, " + file);
             e.printStackTrace();
         } catch (IOException e) {
-            Log.e("FileUtils", "copyDocument: " + e.toString());
+            e.printStackTrace();
         }
-
-        return false;
+        return true;
     }
 
-
-    public static OutputStream getOutputStream(Context context, DocumentFile documentFile) throws FileNotFoundException {
-        return context.getContentResolver().openOutputStream(documentFile.getUri());
-    }
-
-    public static InputStream getInputStream(Context context, DocumentFile documentFile) throws FileNotFoundException {
-        return context.getContentResolver().openInputStream(documentFile.getUri());
-    }
 
     public static void deleteDirWithFile(File dir) {
         if (dir == null || !dir.exists() || !dir.isDirectory())

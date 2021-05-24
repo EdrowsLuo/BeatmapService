@@ -286,7 +286,7 @@
                     android:layout_alignStart="@id/updateCache"
 
                     android:layout_marginLeft="120dp"
-                    android:checked="false"
+                    android:checked="true"
                     android:text="可下载" />
 
                 <EditText

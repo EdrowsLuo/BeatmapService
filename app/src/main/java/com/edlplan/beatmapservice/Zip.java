@@ -53,7 +53,7 @@ public class Zip {
                 Util.flow(zipInputStream, outputStream);
                 outputStream.close();
             }
-            Util.moveDocument(context, DocumentFile.fromFile(tempDir), songsDir);
+            Util.moveDocument(context,tempDir, songsDir);
 
         } catch (Exception e) {
             e.printStackTrace();
