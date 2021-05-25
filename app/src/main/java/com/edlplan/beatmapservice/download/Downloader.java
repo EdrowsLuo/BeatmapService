@@ -185,6 +185,7 @@ public class Downloader {
 
                 outputStream.close();
                 connection.disconnect();
+                callback.onComplete();
                 try {
                     Zip.unzipDocumentFile(dir, target, context);
                 } catch (IOException e) {
@@ -192,7 +193,6 @@ public class Downloader {
                 }
                 // use param1 and param2 here
 
-                callback.onComplete();
             }
         } catch (SSLHandshakeException e) {
             e.printStackTrace();

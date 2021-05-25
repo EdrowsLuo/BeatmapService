@@ -90,9 +90,11 @@ public class BSMainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         pickedDir = initPermission(this);
+        if(pickedDir!=null){
+            Util.continueMove(this, pickedDir);
+        }
         cacheManager.loadCache(this);
         loadKeyword(this);
-
         //com.tencent.bugly.proguard.an.c = BuildConfig.DEBUG;
         Beta.autoCheckUpgrade = PreferenceManager.getDefaultSharedPreferences(this).getBoolean("auto_update", true);
         Beta.initDelay = 1000;
@@ -789,6 +791,7 @@ public class BSMainActivity extends AppCompatActivity
                         }
                     });
 
+                    DownloadHolder.get().initialCallback(sid, container);
                     DownloadCenter.download(BSMainActivity.this, info, container, pickedDir);
                     v.setOnClickListener(null);
                 });

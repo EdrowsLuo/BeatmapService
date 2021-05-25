@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+
 import androidx.annotation.Nullable;
 import androidx.documentfile.provider.DocumentFile;
 
@@ -21,56 +22,51 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class DownloadCenter {
+    public static ExecutorService fixedThreadPool = Executors.newFixedThreadPool(5);
 
-    public static void download(Context context, int id, File dir, Downloader.CallbackContainer callback, boolean unzip, IBeatmapSetInfo info, DocumentFile pickedDir) {
-        new Thread(() -> {
-            DownloadHolder downloadHolder = DownloadHolder.get();
-            DownloadHolder.get().initialCallback(id, callback);
-            int num = downloadHolder.currentRunningNum();
-            while (num > 3) {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                num = downloadHolder.currentRunningNum();
-            }
-            Downloader downloader = new Downloader();
-            downloader.setTargetDirectory(dir);
-            try {
-                URL startURL;
+    public static void download(Context context, int id, File dir, Downloader.Callback callback, boolean unzip, IBeatmapSetInfo info, DocumentFile pickedDir) {
+        fixedThreadPool.execute(
+                () -> {
+                    Downloader downloader = new Downloader();
+                    downloader.setTargetDirectory(dir);
+                    try {
+                        URL startURL;
 
-                String server = SayoServerSelector.getInstance().getSelected().server;
-                startURL = new URL("https://txy1.sayobot.cn/beatmaps/download/full/" + URLEncoder.encode("" + id, "UTF-8") + "?server=" + server);
+                        String server = SayoServerSelector.getInstance().getSelected().server;
+                        startURL = new URL("https://txy1.sayobot.cn/beatmaps/download/full/" + URLEncoder.encode("" + id, "UTF-8") + "?server=" + server);
 
-                downloader.setFilenameOverride(String.format(Locale.getDefault(), "%d %s - %s.osz", id, info.getArtist(), info.getTitle()));
-                downloader.setUrl(startURL);
-                downloader.setCallback(callback);
-                downloader.pickedDir = pickedDir;
-                downloader.context=context;
-                if (unzip && pickedDir == null) {
-                    downloader.setHandleDownloadFile(file -> {
-                        try {
-                            Zip.unzip(file);
-                            file.delete();
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                        downloader.setFilenameOverride(String.format(Locale.getDefault(), "%d %s - %s.osz", id, info.getArtist(), info.getTitle()));
+                        downloader.setUrl(startURL);
+                        downloader.setCallback(callback);
+                        downloader.pickedDir = pickedDir;
+                        downloader.context = context;
+                        if (unzip && pickedDir == null) {
+                            downloader.setHandleDownloadFile(file -> {
+                                try {
+                                    Zip.unzip(file);
+                                    file.delete();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            });
                         }
-                    });
+                        downloader.start();
+                    } catch (MalformedURLException e) {
+                        e.printStackTrace();
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+
                 }
-                downloader.start();
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-        }).start();
+        );
     }
 
     @SuppressLint("ApplySharedPref")
-    public static void download(Context context, IBeatmapSetInfo info, Downloader.CallbackContainer callback,DocumentFile pickedDir) {
+    public static void download(Context context, IBeatmapSetInfo info, Downloader.Callback callback, DocumentFile pickedDir) {
         if ((GameModes.STD & info.getModes()) == 0) {
             if (!PreferenceManager.getDefaultSharedPreferences(context).getBoolean("download_none_std", false)) {
                 MyDialog.showForTask(context,
@@ -81,7 +77,7 @@ public class DownloadCenter {
                                     .putBoolean("download_none_std", true)
                                     .commit();
                             dialog.dismiss();
-                            download(context, info, callback,pickedDir);
+                            download(context, info, callback, pickedDir);
                         },
                         dialog -> {
                             dialog.dismiss();
@@ -92,7 +88,7 @@ public class DownloadCenter {
 
         }
         download(context, info.getBeatmapSetID(), directoryToFile(findDirectory(context, info)), callback,
-                PreferenceManager.getDefaultSharedPreferences(context).getBoolean("auto_unzip", false), info,pickedDir);
+                PreferenceManager.getDefaultSharedPreferences(context).getBoolean("auto_unzip", false), info, pickedDir);
     }
 
     private static File directoryToFile(String d) {

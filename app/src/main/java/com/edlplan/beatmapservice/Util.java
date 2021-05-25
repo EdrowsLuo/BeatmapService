@@ -7,6 +7,7 @@ import android.os.Environment;
 import androidx.annotation.Nullable;
 import androidx.documentfile.provider.DocumentFile;
 
+import android.preference.PreferenceManager;
 import android.provider.DocumentsContract;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
@@ -28,7 +29,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 
 public class Util {
@@ -354,6 +357,36 @@ public class Util {
         return true;
     }
 
+    public static void continueMove(Context context, DocumentFile pickedDir) {
+
+        new Thread(() -> {
+            List<String> path = new ArrayList<>();
+            String songsDir = PreferenceManager.getDefaultSharedPreferences(context).getString("default_download_path",
+                    Environment.getExternalStorageDirectory() + "/osu!droid/Songs");
+            File tempDir = new File(songsDir);
+            String dirName;
+            while (tempDir != null) {
+                dirName = tempDir.getName();
+                path.add(dirName);
+                tempDir = tempDir.getParentFile();
+            }
+            DocumentFile dir = pickedDir;
+
+            for (int i = path.size() - 2; i >= 0; i -= 1) {
+                if (path.get(i + 1).equals(pickedDir.getName())) {
+                    dir = pickedDir.findFile(path.get(i));
+                }
+            }
+
+            File cacheDir = context.getApplicationContext().getExternalCacheDir();
+            for (File mapset : cacheDir.listFiles()) {
+                if (mapset.isDirectory()) {
+                    moveDocument(context, mapset, dir);
+                    deleteDirWithFile(mapset);
+                }
+            }
+        }).start();
+    }
 
     public static void deleteDirWithFile(File dir) {
         if (dir == null || !dir.exists() || !dir.isDirectory())
