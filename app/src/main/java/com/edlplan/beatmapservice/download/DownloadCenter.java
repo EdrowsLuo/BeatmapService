@@ -26,43 +26,38 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class DownloadCenter {
-    public static ExecutorService fixedThreadPool = Executors.newFixedThreadPool(5);
 
     public static void download(Context context, int id, File dir, Downloader.Callback callback, boolean unzip, IBeatmapSetInfo info, DocumentFile pickedDir) {
-        fixedThreadPool.execute(
-                () -> {
-                    Downloader downloader = new Downloader();
-                    downloader.setTargetDirectory(dir);
+
+        Downloader downloader = new Downloader();
+        downloader.setTargetDirectory(dir);
+        try {
+            URL startURL;
+
+            String server = SayoServerSelector.getInstance().getSelected().server;
+            startURL = new URL("https://txy1.sayobot.cn/beatmaps/download/full/" + URLEncoder.encode("" + id, "UTF-8") + "?server=" + server);
+
+            downloader.setFilenameOverride(String.format(Locale.getDefault(), "%d %s - %s.osz", id, info.getArtist(), info.getTitle()));
+            downloader.setUrl(startURL);
+            downloader.setCallback(callback);
+            downloader.pickedDir = pickedDir;
+            downloader.context = context;
+            if (unzip && pickedDir == null) {
+                downloader.setHandleDownloadFile(file -> {
                     try {
-                        URL startURL;
-
-                        String server = SayoServerSelector.getInstance().getSelected().server;
-                        startURL = new URL("https://txy1.sayobot.cn/beatmaps/download/full/" + URLEncoder.encode("" + id, "UTF-8") + "?server=" + server);
-
-                        downloader.setFilenameOverride(String.format(Locale.getDefault(), "%d %s - %s.osz", id, info.getArtist(), info.getTitle()));
-                        downloader.setUrl(startURL);
-                        downloader.setCallback(callback);
-                        downloader.pickedDir = pickedDir;
-                        downloader.context = context;
-                        if (unzip && pickedDir == null) {
-                            downloader.setHandleDownloadFile(file -> {
-                                try {
-                                    Zip.unzip(file);
-                                    file.delete();
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                            });
-                        }
-                        downloader.start();
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
-                    } catch (UnsupportedEncodingException e) {
+                        Zip.unzip(file);
+                        file.delete();
+                    } catch (IOException e) {
                         e.printStackTrace();
                     }
-
-                }
-        );
+                });
+            }
+            downloader.start();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
     }
 
     @SuppressLint("ApplySharedPref")

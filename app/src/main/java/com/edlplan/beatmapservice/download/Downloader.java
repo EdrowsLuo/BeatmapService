@@ -11,6 +11,7 @@ import com.edlplan.beatmapservice.Zip;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,10 +24,14 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.net.ssl.SSLHandshakeException;
 
 public class Downloader {
+    public static ExecutorService fixedThreadPool = Executors.newFixedThreadPool(10);
+
 
     public static final String[] ESCAPE_CHARACTER_LIST = {"\\", "/", ":", "*", "?", "\"", "<", ">", "|"};
     public DocumentFile pickedDir;
@@ -186,15 +191,26 @@ public class Downloader {
                 outputStream.close();
                 connection.disconnect();
                 callback.onComplete();
-                try {
-                    Zip.unzipDocumentFile(dir, target, context);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                DocumentFile finalDir = dir;
+                File finalTarget = target;
+                Zip.fixedThreadPool.execute(() -> {
+                    try {
+                        Zip.unzipDocumentFile(finalDir, finalTarget, context, targetDirectory);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+
                 // use param1 and param2 here
 
             }
         } catch (SSLHandshakeException e) {
+            e.printStackTrace();
+            if (target != null) {
+                target.delete();
+            }
+            callback.onError(e);
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
             if (target != null) {
                 target.delete();
@@ -232,15 +248,8 @@ public class Downloader {
 
 
     public void start() {
-        (new Thread() {
-            @Override
-            public void run() {
-                super.run();
-                synchronized (url) {
-                    downloadURL(url);
-                }
-            }
-        }).start();
+        fixedThreadPool.execute(
+                () -> downloadURL(url));
     }
 
 

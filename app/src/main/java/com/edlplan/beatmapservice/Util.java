@@ -30,6 +30,7 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -90,6 +91,19 @@ public class Util {
         byte[] buf = new byte[2048];
         int l;
         while ((l = in.read(buf)) != -1) {
+            out.write(buf, 0, l);
+        }
+    }
+
+    public static void flow(InputStream in, OutputStream out, long fileSize) throws IOException {
+        byte[] buf = new byte[2048];
+        int l, i = 0;
+
+        while ((l = in.read(buf)) != -1) {
+            i += 2048;
+            if (i > fileSize * 32) {
+                throw new IOException("s");
+            }
             out.write(buf, 0, l);
         }
     }
@@ -309,22 +323,25 @@ public class Util {
      */
 
 
-    public static boolean moveDocument(Context context, File fileFrom, DocumentFile fileTo) {
-
+    public static boolean moveDocument(Context context, File fileFrom, DocumentFile fileTo, File fileToPath) {
+        Log.v("FileUtils", "moveDocument: " + fileFrom);
         if (fileTo.isDirectory() /*&& fileTo.canWrite()*/) {
             if (fileFrom.isFile()) {
-                return copyDocument(context, fileFrom, fileTo);
+                return copyDocument(context, fileFrom, fileTo, fileToPath);
             } else if (fileFrom.isDirectory()) {
                 File[] filesInDir = fileFrom.listFiles();
-                DocumentFile filesToDir = fileTo.findFile(fileFrom.getName());
-                if (filesToDir == null) {
+                DocumentFile filesToDir;
+                File targetFile = new File(fileToPath, fileFrom.getName());
+                if (!targetFile.exists()) {
                     filesToDir = fileTo.createDirectory(fileFrom.getName());
                     if (!filesToDir.exists()) {
                         return false;
                     }
+                } else {
+                    filesToDir = fileTo.findFile(fileFrom.getName());
                 }
                 for (int i = 0; i < filesInDir.length; i++) {
-                    moveDocument(context, filesInDir[i], filesToDir);
+                    moveDocument(context, filesInDir[i], filesToDir, targetFile);
                 }
                 return true;
             }
@@ -332,17 +349,22 @@ public class Util {
         return false;
     }
 
-    public static boolean copyDocument(Context context, File file, DocumentFile dest) {
+    public static boolean copyDocument(Context context, File file, DocumentFile dest, File fileToPath) {
         if (!file.exists() || file.isDirectory()) {
             Log.v("FileUtils", "copyDocument: file not exist or is directory, " + file);
             return false;
         }
+        Log.v("FileUtils", "copyDocument: " + file);
+
         try {
-            DocumentFile destFile = dest.findFile(file.getName());
-            if (destFile != null) {
-                if (destFile.length() == file.length()) {
+            File targetFile = new File(fileToPath, file.getName());
+
+            DocumentFile destFile;
+            if (targetFile.exists()) {
+                if (targetFile.length() == file.length()) {
                     return true;
                 }
+                destFile = dest.findFile(file.getName());
             } else {
                 destFile = dest.createFile("application/octet-stream", file.getName());
             }
@@ -377,12 +399,21 @@ public class Util {
                     dir = pickedDir.findFile(path.get(i));
                 }
             }
+            Log.d("DF", "continueMove: " + dir.getName());
 
             File cacheDir = context.getApplicationContext().getExternalCacheDir();
-            for (File mapset : cacheDir.listFiles()) {
-                if (mapset.isDirectory()) {
-                    moveDocument(context, mapset, dir);
-                    deleteDirWithFile(mapset);
+            for (File oszFile : cacheDir.listFiles()) {
+                if (oszFile.getName().endsWith(".osz")) {
+                    DocumentFile finalDir = dir;
+                    Log.d("DF", "continueMove: " + oszFile);
+
+                    Zip.fixedThreadPool.execute(() -> {
+                        try {
+                            Zip.unzipDocumentFile(finalDir, oszFile, context, new File(songsDir));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
                 }
             }
         }).start();
