@@ -30,7 +30,7 @@ import java.util.concurrent.Executors;
 import javax.net.ssl.SSLHandshakeException;
 
 public class Downloader {
-    public static ExecutorService fixedThreadPool = Executors.newFixedThreadPool(10);
+    public static ExecutorService fixedThreadPool = Executors.newFixedThreadPool(3);
 
 
     public static final String[] ESCAPE_CHARACTER_LIST = {"\\", "/", ":", "*", "?", "\"", "<", ">", "|"};
@@ -173,12 +173,13 @@ public class Downloader {
                 File cacheDir = context.getApplicationContext().getExternalCacheDir();
 
                 target = new File(cacheDir, name);
-                if (!target.exists()) {
-                    target.createNewFile();
+                File targetTmp = new File(cacheDir, name + ".tmp");
+                if (!targetTmp.exists()) {
+                    targetTmp.createNewFile();
                 }
 
 
-                FileOutputStream outputStream = new FileOutputStream(target);
+                FileOutputStream outputStream = new FileOutputStream(targetTmp);
                 while ((l = inputStream.read(buffer)) != -1) {
                     callbackRate++;
                     down += l;
@@ -190,6 +191,7 @@ public class Downloader {
 
                 outputStream.close();
                 connection.disconnect();
+                targetTmp.renameTo(target);
                 callback.onComplete();
                 DocumentFile finalDir = dir;
                 File finalTarget = target;

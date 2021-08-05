@@ -95,13 +95,13 @@ public class Util {
         }
     }
 
-    public static void flow(InputStream in, OutputStream out, long fileSize) throws IOException {
+    public static void flow(InputStream in, OutputStream out, long entrySize) throws IOException {
         byte[] buf = new byte[2048];
         int l, i = 0;
 
         while ((l = in.read(buf)) != -1) {
             i += 2048;
-            if (i > fileSize * 32) {
+            if (i > entrySize * 2) {
                 throw new IOException("s");
             }
             out.write(buf, 0, l);
@@ -324,7 +324,7 @@ public class Util {
 
 
     public static boolean moveDocument(Context context, File fileFrom, DocumentFile fileTo, File fileToPath) {
-        Log.v("FileUtils", "moveDocument: " + fileFrom);
+        Log.v("FileUtils", "moveDocument: " + fileFrom+" to "+fileToPath);
         if (fileTo.isDirectory() /*&& fileTo.canWrite()*/) {
             if (fileFrom.isFile()) {
                 return copyDocument(context, fileFrom, fileTo, fileToPath);
@@ -414,6 +414,10 @@ public class Util {
                             e.printStackTrace();
                         }
                     });
+                }else{
+                    if (oszFile.getName().endsWith("tmp")){
+                        oszFile.delete();
+                    }
                 }
             }
         }).start();

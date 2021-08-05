@@ -1,6 +1,7 @@
 package com.edlplan.beatmapservice;
 
 import android.content.Context;
+import android.util.Log;
 
 import androidx.documentfile.provider.DocumentFile;
 
@@ -42,12 +43,15 @@ public class Zip {
             ZipEntry entry;
             while ((entry = zipInputStream.getNextEntry()) != null) {
                 File f = new File(tempDir, entry.getName());
+                Log.d("DF", "unzipDocumentFile: " + f);
                 Util.checkFile(f);
                 FileOutputStream outputStream = new FileOutputStream(f);
                 Util.flow(zipInputStream, outputStream);
                 outputStream.close();
+                Log.d("DF", "unzipDocumentFile: " + "finish");
+
             }
-            for(File f :tempDir.listFiles()){
+            for (File f : tempDir.listFiles()) {
                 String[] videoExtension = {"avi", "flv", "mp4"};//跳过视频文件
                 boolean flag = false;
                 for (String ex : videoExtension) {
