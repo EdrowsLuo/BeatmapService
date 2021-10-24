@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.util.Log;
 import android.webkit.URLUtil;
 
+import com.edlplan.beatmapservice.CacheManager;
 import com.edlplan.beatmapservice.Util;
 import com.edlplan.beatmapservice.site.BeatmapFilterInfo;
 import com.edlplan.beatmapservice.site.BeatmapListType;
@@ -25,10 +26,10 @@ public class SayoBeatmapListSite implements IBeatmapListSite {
     private final Object lock = new Object();
 
     ArrayList<BeatmapSetInfo> loadedSets = new ArrayList<>();
-
+    ArrayList<Integer> newLoadedSetsIDs = new ArrayList<>();
     private BeatmapFilterInfo filterInfo;
 
-    private int pageSize =  50;
+    private int pageSize = 50;
 
     private int preIndex = 0;
 
@@ -102,10 +103,11 @@ public class SayoBeatmapListSite implements IBeatmapListSite {
                 if (connection.getResponseCode() != 200) {
                     Log.w("load beatmap", "http response not 200! " + url + " [" + connection.getResponseCode() + "]");
                     return;
-                }String s;
+                }
+                String s;
                 if (connection.getHeaderField("Content-Type") != null
                         && connection.getHeaderField("Content-Type").contains("charset=GB2312")) {
-                    s = Util.readFullString(connection.getInputStream(),"GB2312");
+                    s = Util.readFullString(connection.getInputStream(), "GB2312");
                 } else {
                     s = Util.readFullString(connection.getInputStream());
                 }
@@ -126,7 +128,8 @@ public class SayoBeatmapListSite implements IBeatmapListSite {
                     hasEnd = true;
                 }
                 JSONArray data = body.getJSONArray("data");
-                for (int i = 0; i < data.length();i++) {
+                newLoadedSetsIDs.clear();
+                for (int i = 0; i < data.length(); i++) {
                     JSONObject obj = data.getJSONObject(i);
                     BeatmapSetInfo setInfo = new BeatmapSetInfo();
                     setInfo.setTitle(obj.getString("title"));
@@ -136,7 +139,19 @@ public class SayoBeatmapListSite implements IBeatmapListSite {
                     setInfo.setModes(obj.getInt("modes"));
                     setInfo.setRankedState(obj.getInt("approved"));
                     setInfo.setFavCount(obj.getInt("favourite_count"));
-                    loadedSets.add(setInfo);
+                    setInfo.setLastUpdate(obj.getInt("lastupdate"));
+                    if (!
+                            (CacheManager.get().ignoreDownloaded && //已勾选 可下载
+                                    (setInfo.getFavCount() == 0
+                                            ||
+                                            (CacheManager.get().downloadedSongs.containsKey(String.valueOf(setInfo.getBeatmapSetID()))  //已下载
+                                                    && CacheManager.get().downloadedSongs.get(String.valueOf(setInfo.getBeatmapSetID())) > setInfo.getLastUpdate()) //不可更新
+                                    )
+                            )
+                    ) {
+                        newLoadedSetsIDs.add(setInfo.getBeatmapSetID());
+                        loadedSets.add(setInfo);
+                    }
                 }
                 preIndex = endid;
             } catch (Exception e) {
@@ -149,6 +164,11 @@ public class SayoBeatmapListSite implements IBeatmapListSite {
     @Override
     public int getLoadedBeatmapSetCount() {
         return loadedSets.size();
+    }
+
+    @Override
+    public ArrayList<Integer> getNewLoadedSetsIDs() {
+        return newLoadedSetsIDs;
     }
 
     @Override
