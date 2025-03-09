@@ -103,6 +103,7 @@ dependencies {
     implementation 'com.umeng.umsdk:game:9.1.0+G'
 
     implementation 'pub.devrel:easypermissions:3.0.0'
+    implementation files('libs\\jackson-all-1.9.2.jar')
 
     //implementation 'com.android.support:preference-v7:28.0.0'
     //implementation 'com.android.support:preference-v14:28.0.0'

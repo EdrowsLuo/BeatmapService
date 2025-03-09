@@ -1,14 +1,24 @@
 package com.edlplan.beatmapservice;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Environment;
+
 import androidx.annotation.Nullable;
+import androidx.documentfile.provider.DocumentFile;
+
+import android.preference.PreferenceManager;
+import android.provider.DocumentsContract;
 import android.util.Log;
+import android.webkit.MimeTypeMap;
 import android.widget.Toast;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,7 +29,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 
 public class Util {
@@ -82,6 +95,19 @@ public class Util {
         }
     }
 
+    public static void flow(InputStream in, OutputStream out, long entrySize) throws IOException {
+        byte[] buf = new byte[2048];
+        int l, i = 0;
+
+        while ((l = in.read(buf)) != -1) {
+            i += 2048;
+            if (i > entrySize * 2) {
+                throw new IOException("s");
+            }
+            out.write(buf, 0, l);
+        }
+    }
+
     public static void flowAndClose(InputStream in, OutputStream out) throws IOException {
         byte[] buf = new byte[2048];
         int l;
@@ -132,7 +158,7 @@ public class Util {
         return new String(readFullByteArray(in), "UTF-8");
     }
 
-    public static String readFullString(InputStream in,String charset) throws IOException {
+    public static String readFullString(InputStream in, String charset) throws IOException {
         return new String(readFullByteArray(in), charset);
     }
 
@@ -161,7 +187,7 @@ public class Util {
             }
             runningTasks.add(key);
         }
-        (new Thread(()->{
+        (new Thread(() -> {
             try {
                 runnable.run();
             } catch (Exception e) {
@@ -259,4 +285,154 @@ public class Util {
     public interface RunnableWithParam<T> {
         void run(T t);
     }
+
+    public static String getNameFromFilename(String filename) {
+        int dotPosition = filename.lastIndexOf('.');
+        if (dotPosition != -1) {
+            return filename.substring(0, dotPosition);
+        }
+        return "";
+    }
+
+
+    private static String getTypeForFile(DocumentFile file) {
+        if (file.isDirectory()) {
+            return DocumentsContract.Document.MIME_TYPE_DIR;
+        } else {
+            return getTypeForName(file.getName());
+        }
+    }
+
+    public static String getTypeForName(String name) {
+        final int lastDot = name.lastIndexOf('.');
+        if (lastDot >= 0) {
+            final String extension = name.substring(lastDot + 1).toLowerCase();
+            final String mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+            if (mime != null) {
+                return mime;
+            }
+        }
+
+        return "application/octet-stream";
+    }
+
+
+    /**
+     * @return A string suitable for display in bytes, kilobytes or megabytes
+     * depending on its size.
+     */
+
+
+    public static boolean moveDocument(Context context, File fileFrom, DocumentFile fileTo, File fileToPath) {
+        Log.v("FileUtils", "moveDocument: " + fileFrom+" to "+fileToPath);
+        if (fileTo.isDirectory() /*&& fileTo.canWrite()*/) {
+            if (fileFrom.isFile()) {
+                return copyDocument(context, fileFrom, fileTo, fileToPath);
+            } else if (fileFrom.isDirectory()) {
+                File[] filesInDir = fileFrom.listFiles();
+                DocumentFile filesToDir;
+                File targetFile = new File(fileToPath, fileFrom.getName());
+                if (!targetFile.exists()) {
+                    filesToDir = fileTo.createDirectory(fileFrom.getName());
+                    if (!filesToDir.exists()) {
+                        return false;
+                    }
+                } else {
+                    filesToDir = fileTo.findFile(fileFrom.getName());
+                }
+                for (int i = 0; i < filesInDir.length; i++) {
+                    moveDocument(context, filesInDir[i], filesToDir, targetFile);
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean copyDocument(Context context, File file, DocumentFile dest, File fileToPath) {
+        if (!file.exists() || file.isDirectory()) {
+            Log.v("FileUtils", "copyDocument: file not exist or is directory, " + file);
+            return false;
+        }
+        Log.v("FileUtils", "copyDocument: " + file);
+
+        try {
+            File targetFile = new File(fileToPath, file.getName());
+
+            DocumentFile destFile;
+            if (targetFile.exists()) {
+                if (targetFile.length() == file.length()) {
+                    return true;
+                }
+                destFile = dest.findFile(file.getName());
+            } else {
+                destFile = dest.createFile("application/octet-stream", file.getName());
+            }
+            FileInputStream fileInputStream = new FileInputStream(file);
+            OutputStream outputStream = context.getContentResolver().openOutputStream(destFile.getUri());
+            flow(fileInputStream, outputStream);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return true;
+    }
+
+    public static void continueMove(Context context, DocumentFile pickedDir) {
+
+        new Thread(() -> {
+            List<String> path = new ArrayList<>();
+            String songsDir = PreferenceManager.getDefaultSharedPreferences(context).getString("default_download_path",
+                    Environment.getExternalStorageDirectory() + "/osu!droid/Songs");
+            File tempDir = new File(songsDir);
+            String dirName;
+            while (tempDir != null) {
+                dirName = tempDir.getName();
+                path.add(dirName);
+                tempDir = tempDir.getParentFile();
+            }
+            DocumentFile dir = pickedDir;
+
+            for (int i = path.size() - 2; i >= 0; i -= 1) {
+                if (path.get(i + 1).equals(pickedDir.getName())) {
+                    dir = pickedDir.findFile(path.get(i));
+                }
+            }
+            Log.d("DF", "continueMove: " + dir.getName());
+
+            File cacheDir = context.getApplicationContext().getExternalCacheDir();
+            for (File oszFile : cacheDir.listFiles()) {
+                if (oszFile.getName().endsWith(".osz")) {
+                    DocumentFile finalDir = dir;
+                    Log.d("DF", "continueMove: " + oszFile);
+
+                    Zip.fixedThreadPool.execute(() -> {
+                        try {
+                            Zip.unzipDocumentFile(finalDir, oszFile, context, new File(songsDir));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+                }else{
+                    if (oszFile.getName().endsWith("tmp")){
+                        oszFile.delete();
+                    }
+                }
+            }
+        }).start();
+    }
+
+    public static void deleteDirWithFile(File dir) {
+        if (dir == null || !dir.exists() || !dir.isDirectory())
+            return;
+        for (File file : dir.listFiles()) {
+            if (file.isFile())
+                file.delete(); // 删除所有文件
+            else if (file.isDirectory())
+                deleteDirWithFile(file); // 递规的方式删除文件夹
+        }
+        dir.delete();// 删除目录本身
+    }
 }
+

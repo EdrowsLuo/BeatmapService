@@ -4,18 +4,27 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
+
 import androidx.annotation.NonNull;
+
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
+
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.PermissionChecker;
 import androidx.core.view.GravityCompat;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,6 +33,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.OrientationHelper;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.appcompat.widget.Toolbar;
+
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -57,11 +68,16 @@ import com.edlplan.beatmapservice.site.GameModes;
 import com.edlplan.beatmapservice.site.IBeatmapSetInfo;
 import com.edlplan.beatmapservice.site.RankedState;
 import com.edlplan.beatmapservice.site.sayo.SayoServerSelector;
+import com.edlplan.beatmapservice.CacheManager;
 import com.edlplan.framework.utils.functionality.SmartIterator;
 import com.tencent.bugly.Bugly;
 import com.tencent.bugly.beta.Beta;
 
+import org.codehaus.jackson.map.ObjectMapper;
+
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import pub.devrel.easypermissions.AppSettingsDialog;
@@ -73,7 +89,12 @@ public class BSMainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        pickedDir = initPermission(this);
+        if(pickedDir!=null){
+            Util.continueMove(this, pickedDir);
+        }
+        cacheManager.loadCache(this);
+        loadKeyword(this);
         //com.tencent.bugly.proguard.an.c = BuildConfig.DEBUG;
         Beta.autoCheckUpgrade = PreferenceManager.getDefaultSharedPreferences(this).getBoolean("auto_update", true);
         Beta.initDelay = 1000;
@@ -103,7 +124,6 @@ public class BSMainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-
 
 
         BeatmapSiteManager.get().getInfoSite().reset();
@@ -222,7 +242,13 @@ public class BSMainActivity extends AppCompatActivity
                 limitText.setVisibility(View.GONE);
             }
         });
-
+        (updateCacheButton = findViewById(R.id.updateCache)).setOnCheckedChangeListener((buttonView, isChecked) -> {
+            cacheManager.updateCache(this);
+        });
+        (downloadFilter = findViewById(R.id.downloadFilter)).setOnCheckedChangeListener((buttonView, isChecked) -> {
+            cacheManager.ignoreDownloaded = isChecked;
+            findViewById(R.id.refresh).callOnClick();
+        });
         std = findViewById(R.id.std);
         taiko = findViewById(R.id.taiko);
         ctb = findViewById(R.id.ctb);
@@ -267,8 +293,7 @@ public class BSMainActivity extends AppCompatActivity
         });
 
 
-
-        loadMore(true);
+        search();
 
 
         // 现在 Sayobot cdn 直接提供国外支持了
@@ -392,13 +417,13 @@ public class BSMainActivity extends AppCompatActivity
 
     private Spinner selectedServer;
 
-    private RadioButton hot,latest;
+    private RadioButton hot, latest;
 
     private CheckBox std, taiko, ctb, mania;
 
     private CheckBox ranked, qualified, loved, pending, graveyard;
 
-    private CheckBox enableValueLimit;
+    private CheckBox enableValueLimit, updateCacheButton, downloadFilter;
 
     private TextView limitText;
 
@@ -408,7 +433,6 @@ public class BSMainActivity extends AppCompatActivity
         if (info == null) {
             return;
         }
-
 
 
         findViewById(R.id.beatmapFilterLayout).setVisibility(View.GONE);
@@ -479,6 +503,9 @@ public class BSMainActivity extends AppCompatActivity
                 BeatmapSiteManager.get().getInfoSite().tryToLoadMoreBeatmapSet();
                 loading = false;
                 runOnUiThread(adapter::notifyDataSetChanged);
+                for (int sid : BeatmapSiteManager.get().getInfoSite().getNewLoadedSetsIDs()) {
+                    CoverPool.preloadCoverBitmap(this, sid);
+                }
             })).start();
         } else {
             Toast.makeText(this, "没有更多的铺面了", Toast.LENGTH_SHORT).show();
@@ -494,7 +521,7 @@ public class BSMainActivity extends AppCompatActivity
 
         public ImageView imageView;
 
-        public TextView title, beatmapInfo;
+        public TextView title, beatmapInfo, likeCountView;
 
         public CardView body;
 
@@ -523,6 +550,7 @@ public class BSMainActivity extends AppCompatActivity
             downloadProgress = itemView.findViewById(R.id.progressBar);
             rankedStateView = itemView.findViewById(R.id.rankStateView);
             previewButton = itemView.findViewById(R.id.musicPreview);
+            likeCountView = itemView.findViewById(R.id.likeCount);
         }
 
     }
@@ -548,10 +576,34 @@ public class BSMainActivity extends AppCompatActivity
 
             IBeatmapSetInfo info = BeatmapSiteManager.get().getInfoSite().getInfoAt(i);
             final int sid = info.getBeatmapSetID();
+            String downloadedState = "";
+
+            if (cacheManager.downloadedSongs.containsKey(String.valueOf(sid))) {
+                int ts = cacheManager.downloadedSongs.get(String.valueOf(sid));
+                if (ts < info.getLastUpdate()) {
+                    downloadedState = "(U)";
+                } else {
+                    downloadedState = "(D)";
+                }
+            }
             final Activity context = (Activity) beatmapCardViewHolder.body.getContext();
             beatmapCardViewHolder.info = info;
-            beatmapCardViewHolder.title.setText(info.getTitle());
+            beatmapCardViewHolder.title.setText(downloadedState + info.getTitle());
             beatmapCardViewHolder.beatmapInfo.setText(String.format("Artist: %s\nCreator: %s", info.getArtist(), info.getCreator()));
+            List<String> result;
+            List<String> appealKeywordList = new ArrayList<>();
+            result = hasKeyword(info.getTitle());
+            if (result != null) {
+                beatmapCardViewHolder.title.setTextColor(Color.RED);
+                appealKeywordList.addAll(result);
+            }
+            beatmapCardViewHolder.beatmapInfo.setText(String.format("Artist: %s\nCreator: %s", info.getArtist(), info.getCreator()));
+            result = hasKeyword(String.format("Artist: %s\nCreator: %s", info.getArtist(), info.getCreator()));
+            if (result != null) {
+                beatmapCardViewHolder.beatmapInfo.setTextColor(Color.RED);
+                appealKeywordList.addAll(result);
+            }
+
             beatmapCardViewHolder.imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
             beatmapCardViewHolder.imageView.setImageAlpha(200);
             beatmapCardViewHolder.imageView.setImageResource(R.drawable.cover);
@@ -561,6 +613,7 @@ public class BSMainActivity extends AppCompatActivity
             beatmapCardViewHolder.ctb.setVisibility(((modes & GameModes.CTB) != 0) ? View.VISIBLE : View.GONE);
             beatmapCardViewHolder.mania.setVisibility(((modes & GameModes.MANIA) != 0) ? View.VISIBLE : View.GONE);
             beatmapCardViewHolder.rankedStateView.setText(RankedState.stateIntToString(info.getRankedState()));
+            beatmapCardViewHolder.likeCountView.setText(String.valueOf(info.getFavCount()));
 
             Bitmap cover = CoverPool.getCoverBitmap(sid);
             if (cover == null) {
@@ -662,7 +715,7 @@ public class BSMainActivity extends AppCompatActivity
 
                                 @Override
                                 public void onError(Throwable e) {
-                                    context.runOnUiThread(() ->{
+                                    context.runOnUiThread(() -> {
                                         Toast.makeText(context, "err: " + e, Toast.LENGTH_LONG).show();
                                         notifyDataSetChanged();
                                     });
@@ -737,8 +790,9 @@ public class BSMainActivity extends AppCompatActivity
                             });
                         }
                     });
+
                     DownloadHolder.get().initialCallback(sid, container);
-                    DownloadCenter.download(BSMainActivity.this, info, container);
+                    DownloadCenter.download(BSMainActivity.this, info, container, pickedDir);
                     v.setOnClickListener(null);
                 });
             }
@@ -784,6 +838,100 @@ public class BSMainActivity extends AppCompatActivity
                 != PermissionChecker.PERMISSION_GRANTED
                 && EasyPermissions.somePermissionPermanentlyDenied(this, perms)) {
             new AppSettingsDialog.Builder(this).build().show();
+        }
+    }
+
+    DocumentFile pickedDir;
+
+    public DocumentFile initPermission(Activity activity) {
+        String path = PreferenceManager.getDefaultSharedPreferences(activity).getString("default_download_path", "default");
+        if (path.startsWith(Environment.getExternalStorageDirectory().toString())
+                || path.equals("default")
+                || Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP
+        ) {
+        } else {
+            SharedPreferences sp = activity.getSharedPreferences("DirPermission", Context.MODE_PRIVATE);
+            String uriTree = sp.getString("uriTree", "");
+            if (TextUtils.isEmpty(uriTree)) {
+                Util.toast(this, "请点击右下角的\"选择\"");
+                activity.startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), 3);
+                // 重新授权
+            } else {
+                try {
+                    Uri uri = Uri.parse(uriTree);
+                    final int takeFlags = activity.getIntent().getFlags()
+                            & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                    activity.getContentResolver().takePersistableUriPermission(uri, takeFlags);
+                    return DocumentFile.fromTreeUri(activity, uri);
+                } catch (SecurityException e) {
+                    activity.startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), 3);
+                }
+            }
+        }
+        return null;
+    }
+
+    public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
+        if (resultCode != RESULT_OK)
+            return;
+        else {
+            // 获取权限
+            Uri treeUri = resultData.getData();
+
+            final int takeFlags = resultData.getFlags()
+                    & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                getContentResolver().takePersistableUriPermission(treeUri, takeFlags);
+            }
+            // 保存获取的目录权限
+            SharedPreferences sp = getSharedPreferences("DirPermission", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putString("uriTree", treeUri.toString());
+            editor.apply();
+            pickedDir = DocumentFile.fromTreeUri(this, treeUri);
+        }
+    }
+
+    CacheManager cacheManager = CacheManager.get();
+
+    public List<String> keywordList = new ArrayList();
+
+    public List<String> hasKeyword(String text) {
+        text = text.toLowerCase();
+        String colonList = "()-~,_[]～";
+        for (int i = 0; i < colonList.length(); i++) {
+            char colon = colonList.charAt(i);
+            text = text.replace(colon, ' ');
+        }
+        while (text.contains("  ")) {
+            text = text.replace("  ", " ");
+        }
+        List<String> appealKeywordList = new ArrayList();
+        for (String keyword : keywordList) {
+            if (text.contains(keyword)) {
+                appealKeywordList.add(keyword);
+            }
+        }
+        if (appealKeywordList.isEmpty()) {
+            return null;
+        } else {
+            return appealKeywordList;
+
+        }
+    }
+
+    public void loadKeyword(Context context
+    ) {
+        File file = new File(Environment.getExternalStorageDirectory(), "osu!droid/Keyword.json");
+        if (file.exists()) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            try {
+                keywordList = objectMapper.readValue(file, keywordList.getClass());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
